@@ -20,6 +20,9 @@ import Toast from "react-native-toast-message";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
+//Custom components import
+import LoadingSpinner from "./src/components/loadingSpinner/loadingSpinner";
+
 //Screens import
 import LoginPage from "./src/screens/loginScreen/loginScreen";
 import SignUpScreen from "./src/screens/signupScreen/signupScreen";
@@ -27,6 +30,7 @@ import SignUpScreen from "./src/screens/signupScreen/signupScreen";
 //Supabase import
 import { supabase } from "./src/utils/supabase";
 import { authState } from "./src/recoil/state";
+import HomePage from "./src/screens/homepage/homepage";
 
 export default function App() {
   return (
@@ -65,20 +69,31 @@ function MyApp() {
   }, [supabase.auth.user()]);
 
   return fontsLoaded && !isLoading ? (
-    <NavigationContainer>
-      <Stack.Navigator
-        screenOptions={{
-          headerShown: false,
-        }}
-      >
-        <Stack.Screen name="Login" component={LoginPage} />
-        <Stack.Screen name="SignUp" component={SignUpScreen} />
-      </Stack.Navigator>
-      <Toast />
-    </NavigationContainer>
+    !auth ? (
+      <NavigationContainer>
+        <Stack.Navigator
+          screenOptions={{
+            headerShown: false,
+          }}
+        >
+          <Stack.Screen name="Login" component={LoginPage} />
+          <Stack.Screen name="SignUp" component={SignUpScreen} />
+        </Stack.Navigator>
+        <Toast />
+      </NavigationContainer>
+    ) : (
+      <NavigationContainer>
+        <Stack.Navigator
+          screenOptions={{
+            headerShown: false,
+          }}
+        >
+          <Stack.Screen name="Home" component={HomePage} />
+        </Stack.Navigator>
+        <Toast />
+      </NavigationContainer>
+    )
   ) : (
-    <View>
-      <ActivityIndicator />
-    </View>
+    <LoadingSpinner />
   );
 }

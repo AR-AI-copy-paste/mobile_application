@@ -25,9 +25,17 @@ import Github from "../../assets/icons/github.svg";
 //Supabase import
 import { supabase, signInWithProvider } from "../../utils/supabase";
 
+//Recoil import
+import { useRecoilState } from "recoil";
+import { authState } from "../../recoil/state";
+
+
 const LoginPage = ({ navigation }) => {
   //useState
   const [isLoading, setIsLoading] = useState(false);
+
+  //Recoil
+  const [_auth , setAuth] = useRecoilState(authState);
 
   //useForm
   const {
@@ -47,27 +55,32 @@ const LoginPage = ({ navigation }) => {
 
     const { email, password } = data;
 
-    const { user, error } = await supabase.auth.signIn({ email, password });
+    try {
+      const { user, error } = await supabase.auth.signIn({ email, password });
 
-    if (error) {
-      Toast.show({
-        type: "error",
-        text1: "Something went wrong",
-        text2: error.message,
-      });
-      return setIsLoading(false);
+      if (error) {
+        Toast.show({
+          type: "error",
+          text1: "Something went wrong",
+          text2: error.message,
+        });
+        return setIsLoading(false);
+      }
+
+      setAuth(user);
+
+      if (user) {
+        Toast.show({
+          type: "success",
+          text1: "Logged in successfully",
+        });
+      }
+      setIsLoading(false);
+    } catch (error) {
+      console.log(error);
+
+      setIsLoading(false);
     }
-
-    if (!user) return;
-
-    setAuth(user);
-
-    Toast.show({
-      type: "success",
-      text1: "Logged in successfully",
-    });
-
-    setIsLoading(false);
   };
 
   return (
