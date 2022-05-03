@@ -44,7 +44,7 @@ const HomePage = ({ navigation }) => {
         }
 
         if (data.length === 0) {
-          console.log("No Profile");
+          navigation.replace("OnBoading");
         }
         setIsLoading(false);
       })();

@@ -26,11 +26,12 @@ import LoadingSpinner from "./src/components/loadingSpinner/loadingSpinner";
 //Screens import
 import LoginPage from "./src/screens/loginScreen/loginScreen";
 import SignUpScreen from "./src/screens/signupScreen/signupScreen";
+import HomePage from "./src/screens/homepage/homepage";
+import OnBoading from "./src/screens/onBoarding/onBoarding";
 
 //Supabase import
 import { supabase } from "./src/utils/supabase";
 import { authState } from "./src/recoil/state";
-import HomePage from "./src/screens/homepage/homepage";
 
 export default function App() {
   return (
@@ -49,8 +50,6 @@ function MyApp() {
     Poppins_500Medium,
     Poppins_700Bold,
   });
-
-  console.log("Font: ", fontsLoaded);
 
   //Recoil state
   const [auth, setAuth] = useRecoilState(authState);
@@ -89,6 +88,7 @@ function MyApp() {
           }}
         >
           <Stack.Screen name="Home" component={HomePage} />
+          <Stack.Screen name="OnBoading" component={OnBoading} />
         </Stack.Navigator>
         <Toast />
       </NavigationContainer>
