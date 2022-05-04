@@ -1,5 +1,5 @@
 //React import
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 //React Native import
 import {
@@ -14,6 +14,7 @@ import {
 import Toast from "react-native-toast-message";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useForm, Controller } from "react-hook-form";
+import { Modalize } from "react-native-modalize";
 
 //Custom components import
 import CustomText from "../../components/CustomText/CustomText";
@@ -21,10 +22,15 @@ import CustomText from "../../components/CustomText/CustomText";
 //Assets import
 import Upload from "../../assets/icons/upload.svg";
 import Delete from "../../assets/icons/delete.svg";
+import Scenary from "../../assets/icons/scenery.svg";
+import Camera from "../../assets/icons/camera.svg";
 
 const OnBoading = ({ navigation }) => {
   //useState
   const [isLoading, setIsLoading] = useState(false);
+
+  //References
+  const modal = useRef(null);
 
   //useForm
   const {
@@ -43,6 +49,77 @@ const OnBoading = ({ navigation }) => {
 
   return (
     <SafeAreaView style={styles.screenContainer}>
+      {/* Image select modal */}
+      <Modalize snapPoint={300} rootStyle={{ zIndex: 1000 }} ref={modal}>
+        <View
+          style={{
+            padding: 20,
+          }}
+        >
+          <CustomText fontSize={18} fontWeight="bold">
+            Pick Image
+          </CustomText>
+          <View
+            style={{
+              alignSelf: "center",
+              alignContent: "center",
+              justifyContent: "center",
+              flexDirection: "row",
+              marginTop: 60,
+            }}
+          >
+            {/* Pick from gallery */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={{
+                marginRight: 50,
+              }}
+            >
+              <View
+                style={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: 15,
+                  backgroundColor: "#e5e5e5",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Scenary width={50} height={50} />
+              </View>
+              <CustomText
+                style={{ alignSelf: "center", marginTop: 5 }}
+                fontWeight="medium"
+              >
+                Gallery
+              </CustomText>
+            </TouchableOpacity>
+
+            {/* Take a new picture */}
+            <TouchableOpacity activeOpacity={0.8}>
+              <View
+                style={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: 15,
+                  backgroundColor: "#e5e5e5",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <Camera width={50} height={50} />
+              </View>
+              <CustomText
+                style={{ alignSelf: "center", marginTop: 5 }}
+                fontWeight="medium"
+              >
+                Camera
+              </CustomText>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modalize>
+
       <CustomText
         fontSize={18}
         fontWeight="bold"
@@ -84,10 +161,15 @@ const OnBoading = ({ navigation }) => {
             alignSelf: "center",
             position: "absolute",
             bottom: 5,
+            zIndex: 4,
           }}
         >
           {/* Upload Button */}
-          <View
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => {
+              modal.current?.open();
+            }}
             style={{
               width: 30,
               height: 30,
@@ -100,7 +182,7 @@ const OnBoading = ({ navigation }) => {
             }}
           >
             <Upload height={20} width={20} />
-          </View>
+          </TouchableOpacity>
 
           {/* Delete Button */}
           <View
