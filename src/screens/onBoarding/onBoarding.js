@@ -15,6 +15,7 @@ import Toast from "react-native-toast-message";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useForm, Controller } from "react-hook-form";
 import { Modalize } from "react-native-modalize";
+import * as ImagePicker from "expo-image-picker";
 
 //Custom components import
 import CustomText from "../../components/CustomText/CustomText";
@@ -28,6 +29,7 @@ import Camera from "../../assets/icons/camera.svg";
 const OnBoading = ({ navigation }) => {
   //useState
   const [isLoading, setIsLoading] = useState(false);
+  const [profileImage, setProfileImage] = useState(null);
 
   //References
   const modal = useRef(null);
@@ -70,6 +72,21 @@ const OnBoading = ({ navigation }) => {
           >
             {/* Pick from gallery */}
             <TouchableOpacity
+              onPress={async () => {
+                let result = await ImagePicker.launchImageLibraryAsync({
+                  mediaTypes: ImagePicker.MediaTypeOptions.Images,
+
+                  allowsEditing: true,
+                  quality: 1,
+                });
+
+                console.log(result);
+
+                if (!result.cancelled) {
+                  setProfileImage(result.uri);
+                  modal.current?.close();
+                }
+              }}
               activeOpacity={0.8}
               style={{
                 marginRight: 50,
@@ -96,7 +113,24 @@ const OnBoading = ({ navigation }) => {
             </TouchableOpacity>
 
             {/* Take a new picture */}
-            <TouchableOpacity activeOpacity={0.8}>
+            <TouchableOpacity
+              onPress={async () => {
+                let result = await ImagePicker.launchCameraAsync({
+                  mediaTypes: ImagePicker.MediaTypeOptions.Images,
+
+                  allowsEditing: true,
+                  quality: 1,
+                });
+
+                console.log(result);
+
+                if (!result.cancelled) {
+                  setProfileImage(result.uri);
+                  modal.current?.close();
+                }
+              }}
+              activeOpacity={0.8}
+            >
               <View
                 style={{
                   width: 80,
@@ -141,7 +175,9 @@ const OnBoading = ({ navigation }) => {
       >
         <Image
           source={{
-            uri: "https://bafybeihj2j6solt4kbl6doc7w2vw7e5eqgc66fsuzpattjnn4mjhxici7y.ipfs.dweb.link/avatar.png",
+            uri: profileImage
+              ? profileImage
+              : "https://bafybeihj2j6solt4kbl6doc7w2vw7e5eqgc66fsuzpattjnn4mjhxici7y.ipfs.dweb.link/avatar.png",
           }}
           style={{
             width: 100,
@@ -178,14 +214,16 @@ const OnBoading = ({ navigation }) => {
               backgroundColor: "#fff",
               justifyContent: "center",
               alignItems: "center",
-              marginRight: 8,
+              marginRight: profileImage ? 8 : 0,
             }}
           >
             <Upload height={20} width={20} />
           </TouchableOpacity>
 
           {/* Delete Button */}
-          <View
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => setProfileImage(null)}
             style={{
               width: 30,
               height: 30,
@@ -194,10 +232,11 @@ const OnBoading = ({ navigation }) => {
               backgroundColor: "#fff",
               justifyContent: "center",
               alignItems: "center",
+              display: profileImage ? "flex" : "none",
             }}
           >
             <Delete height={20} width={20} />
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
 
