@@ -16,7 +16,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useForm, Controller } from "react-hook-form";
 import { Modalize } from "react-native-modalize";
 import * as ImagePicker from "expo-image-picker";
-import * as FileSystem from "expo-file-system";
 
 //Custom components import
 import CustomText from "../../components/CustomText/CustomText";
@@ -28,7 +27,8 @@ import Scenary from "../../assets/icons/scenery.svg";
 import Camera from "../../assets/icons/camera.svg";
 
 //Utils import
-import { uploadImage } from "../../utils/ipfs_storage";
+import { uploadImage, defaultProfileImage } from "../../utils/ipfs_storage";
+import { supabase } from "../../utils/supabase";
 
 const OnBoading = ({ navigation }) => {
   //useState
@@ -46,12 +46,44 @@ const OnBoading = ({ navigation }) => {
     formState: { errors },
   } = useForm({
     defaultValues: {
-      email: "",
+      username: "",
       fullName: "",
     },
   });
 
-  const onSubmit = async (data) => {};
+  const onSubmit = async (formData) => {
+    if (isLoading) return;
+    setIsLoading(true);
+    try {
+      const profileUrl = profileImage
+        ? await uploadImage(profileImage.uri)
+        : defaultProfileImage;
+
+      const { username, fullName } = formData;
+
+      const { data, error } = await supabase.from("profiles").insert([
+        {
+          fullName,
+          userName: username.toLowerCase(),
+          email: supabase.auth.user().email,
+          ProfileImage: profileUrl,
+        },
+      ]);
+
+      if (error) {
+        Toast.show({
+          type: "error",
+          text1: "Something went wrong",
+          text2: error.message,
+        });
+        return setIsLoading(false);
+      }
+
+      setIsLoading(false);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.screenContainer}>
