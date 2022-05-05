@@ -1,5 +1,5 @@
 //React import
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 //React Native import
 import {
@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useForm, Controller } from "react-hook-form";
 import { Modalize } from "react-native-modalize";
 import * as ImagePicker from "expo-image-picker";
+import * as FileSystem from "expo-file-system";
 
 //Custom components import
 import CustomText from "../../components/CustomText/CustomText";
@@ -25,6 +26,9 @@ import Upload from "../../assets/icons/upload.svg";
 import Delete from "../../assets/icons/delete.svg";
 import Scenary from "../../assets/icons/scenery.svg";
 import Camera from "../../assets/icons/camera.svg";
+
+//Utils import
+import { uploadImage } from "../../utils/ipfs_storage";
 
 const OnBoading = ({ navigation }) => {
   //useState
@@ -73,18 +77,21 @@ const OnBoading = ({ navigation }) => {
             {/* Pick from gallery */}
             <TouchableOpacity
               onPress={async () => {
-                let result = await ImagePicker.launchImageLibraryAsync({
-                  mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                try {
+                  let result = await ImagePicker.launchImageLibraryAsync({
+                    mediaTypes: ImagePicker.MediaTypeOptions.Images,
 
-                  allowsEditing: true,
-                  quality: 1,
-                });
+                    allowsEditing: true,
+                    quality: 0.6,
+                  });
 
-                console.log(result);
+                  if (!result.cancelled) {
+                    setProfileImage(result);
 
-                if (!result.cancelled) {
-                  setProfileImage(result.uri);
-                  modal.current?.close();
+                    modal.current.close();
+                  }
+                } catch (error) {
+                  console.log(error);
                 }
               }}
               activeOpacity={0.8}
@@ -119,13 +126,12 @@ const OnBoading = ({ navigation }) => {
                   mediaTypes: ImagePicker.MediaTypeOptions.Images,
 
                   allowsEditing: true,
-                  quality: 1,
+                  quality: 0.6,
                 });
 
-                console.log(result);
-
                 if (!result.cancelled) {
-                  setProfileImage(result.uri);
+                  setProfileImage(result);
+
                   modal.current?.close();
                 }
               }}
@@ -176,7 +182,7 @@ const OnBoading = ({ navigation }) => {
         <Image
           source={{
             uri: profileImage
-              ? profileImage
+              ? profileImage.uri
               : "https://bafybeihj2j6solt4kbl6doc7w2vw7e5eqgc66fsuzpattjnn4mjhxici7y.ipfs.dweb.link/avatar.png",
           }}
           style={{

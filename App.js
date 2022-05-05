@@ -19,6 +19,9 @@ import "react-native-url-polyfill/auto";
 import Toast from "react-native-toast-message";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import * as encoding from 'text-encoding';
+import '@expo/browser-polyfill';
+import "./shim.js";
 
 //Custom components import
 import LoadingSpinner from "./src/components/loadingSpinner/loadingSpinner";

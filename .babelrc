@@ -1,5 +1,11 @@
 {
-    "plugins": [
-      ["module:react-native-dotenv"]
+  "plugins": [
+    ["module:react-native-dotenv"],
+    [
+      "@babel/plugin-transform-spread",
+      {
+        "loose": true
+      }
     ]
-  }
+  ]
+}
