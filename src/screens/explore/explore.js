@@ -2,7 +2,7 @@
 import { SafeAreaView } from "react-native-safe-area-context";
 
 //React Native import
-import { StyleSheet, TextInput, View, Image, ScrollView } from "react-native";
+import { StyleSheet, TextInput, View, Image, ScrollView , Animated } from "react-native";
 
 //Custom components import
 import CustomText from "../../components/CustomText/CustomText";
@@ -275,6 +275,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 20,
     paddingHorizontal: 20,
+    
   },
 });
 

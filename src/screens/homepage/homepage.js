@@ -6,6 +6,7 @@ import { Text, StyleSheet, View, TouchableOpacity } from "react-native";
 
 //Custom components import
 import LoadingSpinner from "../../components/loadingSpinner/loadingSpinner";
+import TakenPhoto from "../../components/takenPhoto/takenPhoto";
 
 //Dependencies import
 import Toast from "react-native-toast-message";
@@ -31,6 +32,7 @@ const HomePage = ({ navigation }) => {
   const [hasPermission, setHasPermission] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
   const [flash, setFlash] = useState(Camera.Constants.FlashMode.off);
+  const [photoTaken, setPhotoTaken] = useState(false);
 
   const isFocused = useIsFocused();
 
@@ -94,9 +96,21 @@ const HomePage = ({ navigation }) => {
     );
   };
 
+  const takePicture = async () => {
+    if (cameraRef.current) {
+      const options = { quality: 0.8 };
+      const data = await cameraRef.current.takePictureAsync(options);
+      setPhotoTaken(data);
+    }
+  };
+
   //Displaying the loading spinner before the data is loaded
   if (isLoading) {
     return <LoadingSpinner />;
+  }
+
+  if (photoTaken) {
+    return <TakenPhoto setPhotoTaken={setPhotoTaken} photoTaken={photoTaken} />;
   }
 
   if (hasPermission === null) {
@@ -105,8 +119,7 @@ const HomePage = ({ navigation }) => {
   if (hasPermission === false) {
     return <Text>No access to camera</Text>;
   }
-  return (
-    isFocused ? 
+  return isFocused ? (
     <View style={styles.container}>
       {/* Cameras */}
       <Camera
@@ -164,7 +177,7 @@ const HomePage = ({ navigation }) => {
 
           {/* Settings button */}
           <TouchableOpacity
-          onPress={() => navigation.push("Settings")}
+            onPress={() => navigation.push("Settings")}
             activeOpacity={0.8}
             style={{
               width: 40,
@@ -182,6 +195,7 @@ const HomePage = ({ navigation }) => {
         {/* Capture button View*/}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
+            onPress={takePicture}
             activeOpacity={0.8}
             style={{
               width: 60,
@@ -198,7 +212,9 @@ const HomePage = ({ navigation }) => {
 
         {/* Utility buttons view */}
       </Camera>
-    </View> : <LoadingSpinner />
+    </View>
+  ) : (
+    <LoadingSpinner />
   );
 };
 
