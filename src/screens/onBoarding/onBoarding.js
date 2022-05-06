@@ -63,6 +63,7 @@ const OnBoading = ({ navigation }) => {
 
       const { data, error } = await supabase.from("profiles").insert([
         {
+          id: supabase.auth.user().id,
           fullName,
           userName: username.toLowerCase(),
           email: supabase.auth.user().email,
@@ -78,6 +79,8 @@ const OnBoading = ({ navigation }) => {
         });
         return setIsLoading(false);
       }
+
+      navigation.replace("Home")
 
       setIsLoading(false);
     } catch (error) {
