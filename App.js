@@ -9,8 +9,6 @@ import {
   Poppins_700Bold,
 } from "@expo-google-fonts/poppins";
 
-//React native import
-import { ActivityIndicator, View } from "react-native";
 
 //Dependencies import
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -19,7 +17,6 @@ import "react-native-url-polyfill/auto";
 import Toast from "react-native-toast-message";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import * as encoding from 'text-encoding';
 import '@expo/browser-polyfill';
 import "./shim.js";
 
@@ -31,10 +28,16 @@ import LoginPage from "./src/screens/loginScreen/loginScreen";
 import SignUpScreen from "./src/screens/signupScreen/signupScreen";
 import HomePage from "./src/screens/homepage/homepage";
 import OnBoading from "./src/screens/onBoarding/onBoarding";
+import Settings from "./src/screens/settings/settings.js";
 
 //Supabase import
 import { supabase } from "./src/utils/supabase";
 import { authState } from "./src/recoil/state";
+
+//Expo settings import
+import { LogBox } from 'react-native';
+
+LogBox.ignoreLogs(['Setting a timer']);
 
 export default function App() {
   return (
@@ -92,6 +95,7 @@ function MyApp() {
         >
           <Stack.Screen name="Home" component={HomePage} />
           <Stack.Screen name="OnBoading" component={OnBoading} />
+          <Stack.Screen name="Settings" component={Settings} />
         </Stack.Navigator>
         <Toast />
       </NavigationContainer>

@@ -10,6 +10,7 @@ import LoadingSpinner from "../../components/loadingSpinner/loadingSpinner";
 //Dependencies import
 import Toast from "react-native-toast-message";
 import { Camera } from "expo-camera";
+import { useIsFocused } from "@react-navigation/native";
 
 //Supabase import
 import { supabase } from "../../utils/supabase";
@@ -30,6 +31,8 @@ const HomePage = ({ navigation }) => {
   const [hasPermission, setHasPermission] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
   const [flash, setFlash] = useState(Camera.Constants.FlashMode.off);
+
+  const isFocused = useIsFocused();
 
   //Recoil State
   const auth = useRecoilValue(authState);
@@ -103,6 +106,7 @@ const HomePage = ({ navigation }) => {
     return <Text>No access to camera</Text>;
   }
   return (
+    isFocused ? 
     <View style={styles.container}>
       {/* Cameras */}
       <Camera
@@ -160,6 +164,7 @@ const HomePage = ({ navigation }) => {
 
           {/* Settings button */}
           <TouchableOpacity
+          onPress={() => navigation.push("Settings")}
             activeOpacity={0.8}
             style={{
               width: 40,
@@ -193,7 +198,7 @@ const HomePage = ({ navigation }) => {
 
         {/* Utility buttons view */}
       </Camera>
-    </View>
+    </View> : <LoadingSpinner />
   );
 };
 
