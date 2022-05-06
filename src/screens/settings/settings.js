@@ -26,9 +26,8 @@ import { useRecoilState } from "recoil";
 import { authState } from "../../recoil/state";
 
 const Settings = ({ navigation }) => {
-
-    //Recoil State
-    const [_auth, setAuth] = useRecoilState(authState);
+  //Recoil State
+  const [_auth, setAuth] = useRecoilState(authState);
 
   return (
     <SafeAreaView
@@ -86,6 +85,7 @@ const Settings = ({ navigation }) => {
           >
             {/* View Profile Button */}
             <TouchableOpacity
+              activeOpacity={0.8}
               style={{
                 height: 50,
                 width: "48%",
@@ -103,6 +103,7 @@ const Settings = ({ navigation }) => {
 
             {/* Edit Profile Button */}
             <TouchableOpacity
+              activeOpacity={0.8}
               style={{
                 height: 50,
                 width: "48%",
@@ -130,10 +131,10 @@ const Settings = ({ navigation }) => {
             Settings ⚙️
           </CustomText>
 
-          {/* Page tab */}
+          {/* Explore Page tab */}
           <TouchableOpacity
             activeOpacity={0.8}
-            // onPress={() => navigation.push("Explore")}
+            onPress={() => navigation.push("Explore")}
             style={{
               width: "100%",
               height: 150,

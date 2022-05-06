@@ -29,6 +29,7 @@ import SignUpScreen from "./src/screens/signupScreen/signupScreen";
 import HomePage from "./src/screens/homepage/homepage";
 import OnBoading from "./src/screens/onBoarding/onBoarding";
 import Settings from "./src/screens/settings/settings.js";
+import ExplorePage from "./src/screens/explore/explore.js";
 
 //Supabase import
 import { supabase } from "./src/utils/supabase";
@@ -96,6 +97,7 @@ function MyApp() {
           <Stack.Screen name="Home" component={HomePage} />
           <Stack.Screen name="OnBoading" component={OnBoading} />
           <Stack.Screen name="Settings" component={Settings} />
+          <Stack.Screen name="Explore" component={ExplorePage} />
         </Stack.Navigator>
         <Toast />
       </NavigationContainer>
