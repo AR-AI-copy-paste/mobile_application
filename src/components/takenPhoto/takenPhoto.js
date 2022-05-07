@@ -48,8 +48,9 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
 
       const { _data, error } = await supabase.from("images").insert({
         title,
-        imgUrl : imageUrl,
+        imgUrl: imageUrl,
         owner: supabase.auth.user().id,
+        isPrivate,
       });
 
       if (error) {
