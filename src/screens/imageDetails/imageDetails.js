@@ -13,6 +13,9 @@ import Bookmark from "../../assets/icons/bookmark.svg";
 import Download from "../../assets/icons/download.svg";
 import Heart from "../../assets/icons/heart.svg";
 
+//Utils import
+import { supabase } from "../../utils/supabase";
+
 const ImageDetails = ({ navigation, route }) => {
   const { post, ownerUsername } = route.params;
 
@@ -172,6 +175,16 @@ const ImageDetails = ({ navigation, route }) => {
         >
           {/* Like Button */}
           <TouchableOpacity
+            onPress={async () => {
+              try {
+                const { data, error } = await supabase.rpc("like", {
+                  post_id: post.id,
+                });
+                
+              } catch (error) {
+                console.log(error);
+              }
+            }}
             activeOpacity={0.8}
             style={{
               width: "48%",
