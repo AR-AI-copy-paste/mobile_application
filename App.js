@@ -30,6 +30,7 @@ import HomePage from "./src/screens/homepage/homepage";
 import OnBoading from "./src/screens/onBoarding/onBoarding";
 import Settings from "./src/screens/settings/settings.js";
 import ExplorePage from "./src/screens/explore/explore.js";
+import EditProfile from "./src/screens/editProfile/editProfile.js";
 
 //Supabase import
 import { supabase } from "./src/utils/supabase";
@@ -98,6 +99,7 @@ function MyApp() {
           <Stack.Screen name="OnBoading" component={OnBoading} />
           <Stack.Screen name="Settings" component={Settings} />
           <Stack.Screen name="Explore" component={ExplorePage} />
+          <Stack.Screen name="EditProfile" component={EditProfile} />
         </Stack.Navigator>
         <Toast />
       </NavigationContainer>

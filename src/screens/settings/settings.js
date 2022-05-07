@@ -105,6 +105,7 @@ const Settings = ({ navigation }) => {
             {/* Edit Profile Button */}
             <TouchableOpacity
               activeOpacity={0.8}
+              onPress={() => navigation.push("EditProfile")}
               style={{
                 height: 50,
                 width: "48%",
