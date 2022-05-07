@@ -27,6 +27,10 @@ import Download from "../../assets/icons/download_white.svg";
 import Locked from "../../assets/icons/lock.svg";
 import Unlocked from "../../assets/icons/unlock.svg";
 
+//Utils import
+import { uploadImage } from "../../utils/ipfs_storage";
+import { supabase } from "../../utils/supabase";
+
 const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
   // useState
   const [title, setTitle] = useState(Generate.generate().dashed);
@@ -34,6 +38,44 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
   const [isBarActive, setisBarActive] = useState(true);
   const [isPrivate, setIsPrivate] = useState(true);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const submitImage = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
+    try {
+      const imageUrl = await uploadImage(photoTaken.uri);
+
+      const { _data, error } = await supabase.from("images").insert({
+        title,
+        imgUrl : imageUrl,
+        owner: supabase.auth.user().id,
+      });
+
+      if (error) {
+        Toast.show({
+          type: "error",
+          text1: "Something went wrong",
+          text2: error.message,
+        });
+        return setIsLoading(false);
+      }
+
+      Toast.show({
+        type: "success",
+        text1: "Photo uploaded successfully",
+      });
+
+      setIsLoading(false);
+      setPhotoTaken(null);
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "Something went wrong",
+        text2: error.message,
+      });
+    }
+  };
 
   return (
     <SafeAreaView
@@ -53,7 +95,10 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
         {/* Back button */}
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={() => setPhotoTaken(null)}
+          onPress={() => {
+            if (isLoading) return;
+            setPhotoTaken(null);
+          }}
         >
           <BackArrow width={40} height={40} />
         </TouchableOpacity>
@@ -84,9 +129,10 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
 
         {/* Save Button */}
         <TouchableOpacity
+          onPress={submitImage}
           activeOpacity={0.8}
           style={{
-            width: 60,
+            width: 80,
             height: 30,
             borderRadius: 10,
             borderWidth: 1,
@@ -95,7 +141,9 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
             alignItems: "center",
           }}
         >
-          <CustomText fontWeight="medium">Save</CustomText>
+          <CustomText fontWeight="medium">
+            {isLoading ? "Loading..." : "Save"}
+          </CustomText>
         </TouchableOpacity>
       </View>
 
