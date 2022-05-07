@@ -1,5 +1,5 @@
 //React import
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 //React Native import
 import {
@@ -8,6 +8,7 @@ import {
   Image,
   Animated,
   TextInput,
+  BackHandler,
 } from "react-native";
 
 //Custom Components import
@@ -77,6 +78,19 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
       });
     }
   };
+
+  //useEffect
+  useEffect(() => {
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      () => {
+          setPhotoTaken(false);
+          return true;
+      }
+    );
+
+    return () => backHandler.remove();
+  }, []);
 
   return (
     <SafeAreaView
