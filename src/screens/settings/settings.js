@@ -17,6 +17,7 @@ import CustomText from "../../components/CustomText/CustomText";
 //Assets import
 import Gallery from "../../assets/icons/images.svg";
 import SignOut from "../../assets/icons/signout.svg";
+import AccountSettings from "../../assets/icons/account-settings.svg";
 
 //utils import
 import { supabase } from "../../utils/supabase";
@@ -146,7 +147,7 @@ const Settings = ({ navigation }) => {
               flexDirection: "row",
               alignItems: "center",
               justifyContent: "center",
-              marginBottom: 30,
+              marginBottom: 10,
             }}
           >
             {/* Icon */}
@@ -179,6 +180,55 @@ const Settings = ({ navigation }) => {
               >
                 Find images shared by other users and implement them in your
                 projects.
+              </CustomText>
+            </View>
+          </TouchableOpacity>
+
+          {/* Account Settings Page tab */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => navigation.push("AccountSettings")}
+            style={{
+              width: "100%",
+              height: 150,
+              borderColor: "#e5e5e5",
+              borderWidth: 1,
+              borderRadius: 10,
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 30,
+            }}
+          >
+            {/* Icon */}
+            <View
+              style={{
+                width: 50,
+                height: 50,
+                backgroundColor: "#e5e5e5",
+                borderRadius: 10,
+                alignItems: "center",
+                justifyContent: "center",
+                marginRight: 20,
+              }}
+            >
+              <AccountSettings width={35} height={35} />
+            </View>
+
+            {/* Text */}
+            <View
+              style={{
+                flexDirection: "column",
+              }}
+            >
+              <CustomText fontSize={20} fontWeight="medium">
+                Account Settings
+              </CustomText>
+              <CustomText
+                style={{ width: 200, color: "#a8a8a8" }}
+                fontSize={14}
+              >
+                Change your authentication email and password.
               </CustomText>
             </View>
           </TouchableOpacity>
