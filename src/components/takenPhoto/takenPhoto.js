@@ -1,8 +1,14 @@
 //React import
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 //React Native import
-import { View, TouchableOpacity, Image, Animated } from "react-native";
+import {
+  View,
+  TouchableOpacity,
+  Image,
+  Animated,
+  TextInput,
+} from "react-native";
 
 //Custom Components import
 import CustomText from "../CustomText/CustomText";
@@ -24,8 +30,10 @@ import Unlocked from "../../assets/icons/unlock.svg";
 const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
   // useState
   const [title, setTitle] = useState(Generate.generate().dashed);
+  const [originalTitle, setOriginalTitle] = useState(title);
   const [isBarActive, setisBarActive] = useState(true);
   const [isPrivate, setIsPrivate] = useState(true);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
 
   return (
     <SafeAreaView
@@ -51,7 +59,28 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
         </TouchableOpacity>
 
         {/* Title */}
-        <CustomText fontWeight="bold">{title}</CustomText>
+        {!isEditingTitle ? (
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => {
+              setIsEditingTitle(true);
+            }}
+          >
+            <CustomText fontWeight="bold">{title}</CustomText>
+          </TouchableOpacity>
+        ) : (
+          <TextInput
+            onBlur={() => setIsEditingTitle(false)}
+            value={title}
+            style={{
+              fontWeight: "bold",
+              fontFamily: "Poppins_700Bold",
+            }}
+            onChangeText={(value) => {
+              setTitle(value);
+            }}
+          />
+        )}
 
         {/* Save Button */}
         <TouchableOpacity
