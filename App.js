@@ -32,6 +32,7 @@ import Settings from "./src/screens/settings/settings.js";
 import ExplorePage from "./src/screens/explore/explore.js";
 import EditProfile from "./src/screens/editProfile/editProfile.js";
 import AccountSettings from "./src/screens/accountSettings/accountSettings.js";
+import Profile from "./src/screens/profile/profile.js";
 
 //Supabase import
 import { supabase } from "./src/utils/supabase";
@@ -102,6 +103,7 @@ function MyApp() {
           <Stack.Screen name="Explore" component={ExplorePage} />
           <Stack.Screen name="EditProfile" component={EditProfile} />
           <Stack.Screen name="AccountSettings" component={AccountSettings} />
+          <Stack.Screen name="Profile" component={Profile} />
         </Stack.Navigator>
         <Toast />
       </NavigationContainer>
