@@ -21,7 +21,7 @@ import ImagePost from "../../components/imagePost/imagePost";
 //Utils import
 import { supabase } from "../../utils/supabase";
 
-const ExplorePage = () => {
+const ExplorePage = ({ navigation }) => {
   //UseState
   const [posts, setPosts] = useState([]);
 
@@ -71,7 +71,14 @@ const ExplorePage = () => {
           }}
         >
           {posts.map((post) => {
-            return <ImagePost userId={post.owner} imgUrl={post.imgUrl}/>;
+            return (
+              <ImagePost
+                key={post.id}
+                userId={post.owner}
+                post={post}
+                navigation={navigation}
+              />
+            );
           })}
         </View>
       </ScrollView>

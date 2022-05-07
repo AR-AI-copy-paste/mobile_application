@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 
 //React Native import
-import { View, Image } from "react-native";
+import { View, Image, TouchableOpacity } from "react-native";
 
 //Custom Component import
 import CustomText from "../../components/CustomText/CustomText";
@@ -10,7 +10,7 @@ import CustomText from "../../components/CustomText/CustomText";
 //Utils import
 import { supabase } from "../../utils/supabase";
 
-const ImagePost = ({ userId, imgUrl }) => {
+const ImagePost = ({ userId, post, navigation }) => {
   //UseState
   const [ownerUsername, setOwnerUsername] = useState("");
   const gap = 6;
@@ -31,7 +31,11 @@ const ImagePost = ({ userId, imgUrl }) => {
   }, []);
 
   return (
-    <View
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={() =>
+        navigation.navigate("ImageDetails", { post, ownerUsername })
+      }
       style={{
         backgroundColor: "#fff",
         width: "48%",
@@ -47,11 +51,10 @@ const ImagePost = ({ userId, imgUrl }) => {
           height: "80%",
           width: "100%",
           borderRadius: 15,
-
           resizeMode: "cover",
         }}
         source={{
-          uri: imgUrl,
+          uri: post.imgUrl,
         }}
       />
 
@@ -74,7 +77,7 @@ const ImagePost = ({ userId, imgUrl }) => {
           </CustomText>
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
