@@ -2,13 +2,7 @@
 import { useState, useEffect } from "react";
 
 //React Native import
-import {
-  StyleSheet,
-  Dimensions,
-  View,
-  TouchableOpacity,
-  Image,
-} from "react-native";
+import { View, TouchableOpacity, Image, Animated } from "react-native";
 
 //Custom Components import
 import CustomText from "../CustomText/CustomText";
@@ -17,15 +11,21 @@ import CustomText from "../CustomText/CustomText";
 import { SafeAreaView } from "react-native-safe-area-context";
 import InteractionProvider from "react-native-interaction-provider";
 import * as Generate from "project-name-generator";
+import * as FileSystem from "expo-file-system";
+import * as MediaLibrary from "expo-media-library";
+import { Toast } from "react-native-toast-message/lib/src/Toast";
 
 //Assets import
 import BackArrow from "../../assets/icons/backarrow.svg";
 import Download from "../../assets/icons/download_white.svg";
+import Locked from "../../assets/icons/lock.svg";
+import Unlocked from "../../assets/icons/unlock.svg";
 
 const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
   // useState
   const [title, setTitle] = useState(Generate.generate().dashed);
   const [isBarActive, setisBarActive] = useState(true);
+  const [isPrivate, setIsPrivate] = useState(true);
 
   return (
     <SafeAreaView
@@ -100,16 +100,27 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
           onActive={() => setisBarActive(true)}
           onInactive={() => setisBarActive(false)}
         >
-          <OptionBar isActive={isBarActive} />
+          <OptionBar
+            isActive={isBarActive}
+            photoTaken={photoTaken}
+            isPrivate={isPrivate}
+            setIsPrivate={setIsPrivate}
+          />
         </InteractionProvider>
       </View>
     </SafeAreaView>
   );
 };
 
-const OptionBar = ({ isActive, ...rest }) => {
+const OptionBar = ({
+  isActive,
+  photoTaken,
+  isPrivate,
+  setIsPrivate,
+  ...rest
+}) => {
   return (
-    <View
+    <Animated.View
       {...rest}
       style={{
         position: "absolute",
@@ -128,18 +139,51 @@ const OptionBar = ({ isActive, ...rest }) => {
       <View
         style={{
           width: 50,
-          height: 300,
+          height: 130,
           borderRadius: 100,
           backgroundColor: "rgba(0,0,0,0.4)",
           paddingVertical: 20,
           alignItems: "center",
         }}
       >
-        <TouchableOpacity activeOpacity={0.8}>
+        {/* Download button */}
+        <TouchableOpacity
+          style={{ marginBottom: 20 }}
+          activeOpacity={0.8}
+          onPress={async () => {
+            try {
+              await MediaLibrary.saveToLibraryAsync(photoTaken.uri);
+              Toast.show({
+                type: "success",
+                text1: "Photo saved to gallery successfully",
+              });
+            } catch (error) {
+              Toast.show({
+                type: "error",
+                text1: "Something went wrong",
+                text2: error.message,
+              });
+            }
+          }}
+        >
           <Download height={30} width={30} />
         </TouchableOpacity>
+
+        {/* Private/Public button */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={async () => {
+            setIsPrivate(!isPrivate);
+          }}
+        >
+          {isPrivate ? (
+            <Locked height={30} width={30} />
+          ) : (
+            <Unlocked height={30} width={30} />
+          )}
+        </TouchableOpacity>
       </View>
-    </View>
+    </Animated.View>
   );
 };
 
