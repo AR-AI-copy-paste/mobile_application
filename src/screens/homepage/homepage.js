@@ -17,8 +17,8 @@ import { useIsFocused } from "@react-navigation/native";
 import { supabase } from "../../utils/supabase";
 
 //recoil import
-import { useRecoilValue } from "recoil";
-import { authState } from "../../recoil/state";
+import { useRecoilValue, useRecoilState } from "recoil";
+import { authState, userProfileState } from "../../recoil/state";
 
 //Assets import
 import Bolt from "../../assets/icons/bolt.svg";
@@ -38,6 +38,7 @@ const HomePage = ({ navigation }) => {
 
   //Recoil State
   const auth = useRecoilValue(authState);
+  const [_profile, setProfile] = useRecoilState(userProfileState);
 
   //References
   const cameraRef = useRef(null);
@@ -62,6 +63,22 @@ const HomePage = ({ navigation }) => {
 
         if (data.length === 0) {
           navigation.replace("OnBoading");
+        } else {
+          const userResponse = await supabase
+            .from("profiles")
+            .select()
+            .match({ id: auth.id });
+
+          if (userResponse.error) {
+            Toast.show({
+              type: "error",
+              text1: "Something went wrong",
+              text2: error.message,
+            });
+            return setIsLoading(false);
+          }
+
+          setProfile(userResponse.data[0]);
         }
         setIsLoading(false);
       })();

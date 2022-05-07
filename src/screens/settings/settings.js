@@ -22,12 +22,13 @@ import SignOut from "../../assets/icons/signout.svg";
 import { supabase } from "../../utils/supabase";
 
 //Recoil import
-import { useRecoilState } from "recoil";
-import { authState } from "../../recoil/state";
+import { useRecoilState, useRecoilValue } from "recoil";
+import { authState, userProfileState } from "../../recoil/state";
 
 const Settings = ({ navigation }) => {
   //Recoil State
   const [_auth, setAuth] = useRecoilState(authState);
+  const userProfile = useRecoilValue(userProfileState);
 
   return (
     <SafeAreaView
@@ -66,11 +67,11 @@ const Settings = ({ navigation }) => {
                 margin: 10,
               }}
               source={{
-                uri: "https://i.pravatar.cc/100",
+                uri: userProfile.ProfileImage,
               }}
             />
 
-            <CustomText fontWeight="medium">Aimen Sahnoun</CustomText>
+            <CustomText fontWeight="medium">{userProfile.fullName}</CustomText>
           </View>
 
           {/* Settings buttons */}
