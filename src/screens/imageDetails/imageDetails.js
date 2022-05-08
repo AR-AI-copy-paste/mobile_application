@@ -1,5 +1,5 @@
 //React Native import
-import { Image, TouchableOpacity, View } from "react-native";
+import { Image, TouchableOpacity, View, Share } from "react-native";
 
 //Dependencies import
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -12,6 +12,7 @@ import BackArrow from "../../assets/icons/backarrow.svg";
 import Bookmark from "../../assets/icons/bookmark.svg";
 import Download from "../../assets/icons/download.svg";
 import Heart from "../../assets/icons/heart.svg";
+import ShareIcon from "../../assets/icons/share.svg";
 
 //Utils import
 import { supabase } from "../../utils/supabase";
@@ -62,7 +63,7 @@ const ImageDetails = ({ navigation, route }) => {
               width: 45,
               height: 45,
               borderRadius: 15,
-              backgroundColor: "rgba(120,120,120,0.3)",
+              backgroundColor: "rgba(120,120,120,.9)",
               alignItems: "center",
               justifyContent: "center",
             }}
@@ -77,7 +78,7 @@ const ImageDetails = ({ navigation, route }) => {
               width: 45,
               height: 45,
               borderRadius: 15,
-              backgroundColor: "rgba(120,120,120,0.3)",
+              backgroundColor: "rgba(120,120,120,0.9)",
               alignItems: "center",
               justifyContent: "center",
             }}
@@ -127,7 +128,7 @@ const ImageDetails = ({ navigation, route }) => {
           >
             <View
               style={{
-                marginLeft: 5,
+                marginRight: 5,
               }}
             >
               <CustomText fontSize={13} fontWeight="bold">
@@ -149,7 +150,7 @@ const ImageDetails = ({ navigation, route }) => {
           >
             <View
               style={{
-                marginLeft: 5,
+                marginRight: 5,
               }}
             >
               <CustomText fontSize={13} fontWeight="bold">
@@ -180,14 +181,13 @@ const ImageDetails = ({ navigation, route }) => {
                 const { data, error } = await supabase.rpc("like", {
                   post_id: post.id,
                 });
-                
               } catch (error) {
                 console.log(error);
               }
             }}
             activeOpacity={0.8}
             style={{
-              width: "48%",
+              width: "40%",
               height: 50,
               borderRadius: 15,
               backgroundColor: "black",
@@ -204,7 +204,7 @@ const ImageDetails = ({ navigation, route }) => {
           <TouchableOpacity
             activeOpacity={0.8}
             style={{
-              width: "48%",
+              width: "40%",
               height: 50,
               borderRadius: 15,
               backgroundColor: "black",
@@ -215,6 +215,41 @@ const ImageDetails = ({ navigation, route }) => {
             <CustomText color="#fff" fontWeight="bold">
               Download
             </CustomText>
+          </TouchableOpacity>
+
+          {/* Share button */}
+          <TouchableOpacity
+            onPress={async () => {
+              try {
+                const result = await Share.share({
+                  message: `This image was shared with you from CopyPaste |   ${post.imgUrl}`,
+                });
+                if (result.action === Share.sharedAction) {
+                  if (result.activityType) {
+                    // shared with activity type of result.activityType
+                  } else {
+                    // shared
+                  }
+                } else if (result.action === Share.dismissedAction) {
+                  // dismissed
+                }
+              } catch (error) {
+                console.log(error);
+              }
+            }}
+            activeOpacity={0.8}
+            style={{
+              width: "15%",
+              height: 50,
+              borderRadius: 15,
+              borderWidth: 2,
+              borderColor: "#000",
+              backgroundColor: "transparent",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <ShareIcon width={25} height={25} />
           </TouchableOpacity>
         </View>
       </View>
