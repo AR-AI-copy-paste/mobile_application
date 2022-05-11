@@ -19,6 +19,8 @@ import Toast from "react-native-toast-message";
 import { Camera } from "expo-camera";
 import { useIsFocused } from "@react-navigation/native";
 import * as FileSystem from "expo-file-system";
+import * as ImageManipulator from 'expo-image-manipulator';
+
 
 //Supabase import
 import { supabase } from "../../utils/supabase";
@@ -135,23 +137,24 @@ const HomePage = ({ navigation }) => {
 
   const takePicture = async () => {
     try {
-      const uri = `http://db7d-78-180-137-52.ngrok.io`;
+      const uri = `http://copycatserver.aimensahnoun.com`;
 
       if (isTakingPic) return;
       setIsTakingPic(true);
       if (cameraRef.current) {
-        const options = { quality: 0.7, base64: true };
+        const options = { quality: 1, base64: true };
         const data = await cameraRef.current.takePictureAsync(options);
-
+        const file = await ImageManipulator.manipulateAsync(data.uri, [], { compress: 0.2 , base64 : true });
+        
         if (!willRemoveBackground) {
           setIsTakingPic(false);
-          return setPhotoTaken(data);
+          return setPhotoTaken(file);
         }
 
-        const image = { type: "image", base64: data.base64, uri: data.uri };
+        const image = { type: "image", base64: file.base64, uri: file.uri };
 
         var response = await FileSystem.uploadAsync(
-          `${uri}/objectEx`,
+          `${uri}/expoObjectEx`,
           image.uri,
           {
             headers: {
