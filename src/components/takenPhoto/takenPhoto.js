@@ -40,6 +40,7 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
   const [isPrivate, setIsPrivate] = useState(true);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  
 
   const submitImage = async () => {
     if (isLoading) return;

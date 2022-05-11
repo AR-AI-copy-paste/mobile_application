@@ -2,7 +2,13 @@
 import { useEffect, useState, useRef } from "react";
 
 //React Native import
-import { Text, StyleSheet, View, TouchableOpacity } from "react-native";
+import {
+  Text,
+  StyleSheet,
+  View,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 
 //Custom components import
 import LoadingSpinner from "../../components/loadingSpinner/loadingSpinner";
@@ -41,6 +47,7 @@ const HomePage = ({ navigation }) => {
   const [flash, setFlash] = useState(Camera.Constants.FlashMode.off);
   const [photoTaken, setPhotoTaken] = useState(false);
   const [willRemoveBackground, setWillRemoveBackground] = useState(false);
+  const [isTakingPic, setIsTakingPic] = useState(false);
 
   const isFocused = useIsFocused();
 
@@ -130,11 +137,16 @@ const HomePage = ({ navigation }) => {
     try {
       const uri = `http://db7d-78-180-137-52.ngrok.io`;
 
+      if (isTakingPic) return;
+      setIsTakingPic(true);
       if (cameraRef.current) {
         const options = { quality: 0.7, base64: true };
         const data = await cameraRef.current.takePictureAsync(options);
 
-        if (!willRemoveBackground) return setPhotoTaken(data);
+        if (!willRemoveBackground) {
+          setIsTakingPic(false);
+          return setPhotoTaken(data);
+        }
 
         const image = { type: "image", base64: data.base64, uri: data.uri };
 
@@ -151,9 +163,11 @@ const HomePage = ({ navigation }) => {
         );
 
         const imageUrl64 = JSON.parse(response.body).imgUri64;
+        setIsTakingPic(false);
         setPhotoTaken(imageUrl64);
       }
     } catch (error) {
+      setIsTakingPic(false);
       console.log(error);
     }
   };
@@ -175,6 +189,25 @@ const HomePage = ({ navigation }) => {
   }
   return isFocused ? (
     <View style={styles.container}>
+      <View
+        style={{
+          flex: 1,
+          display: isTakingPic ? "flex" : "none",
+          position: "absolute",
+          zIndex: 500,
+          left: 0,
+          right: 0,
+          top: 0,
+          bottom: 0,
+          width: "100%",
+          height: "100%",
+          justifyContent: "center",
+          backgroundColor: "rgba(0,0,0,0.3)",
+          alignItems: "center",
+        }}
+      >
+        <ActivityIndicator size="large" color="#fff" />
+      </View>
       {/* Cameras */}
       <Camera
         style={styles.camera}
@@ -243,7 +276,7 @@ const HomePage = ({ navigation }) => {
               marginBottom: 10,
             }}
           >
-            {willRemoveBackground === true ? (
+            {willRemoveBackground === false ? (
               <KeepBackground height={30} width={30} />
             ) : (
               <RemoveBackground height={30} width={30} />
