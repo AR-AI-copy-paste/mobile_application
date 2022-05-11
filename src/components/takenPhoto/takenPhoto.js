@@ -168,7 +168,7 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
           flex: 1,
           flexGrow: 1,
           alignSelf: "stretch",
-          backgroundColor: "#000",
+          backgroundColor: "#fff",
           position: "relative",
         }}
       >
@@ -178,7 +178,7 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
         >
           <Image
             source={{
-              uri: photoTaken.uri,
+              uri: photoTaken.uri ? photoTaken.uri : photoTaken,
             }}
             style={{
               width: "100%",

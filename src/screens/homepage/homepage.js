@@ -12,6 +12,7 @@ import TakenPhoto from "../../components/takenPhoto/takenPhoto";
 import Toast from "react-native-toast-message";
 import { Camera } from "expo-camera";
 import { useIsFocused } from "@react-navigation/native";
+import * as FileSystem from "expo-file-system";
 
 //Supabase import
 import { supabase } from "../../utils/supabase";
@@ -25,14 +26,21 @@ import Bolt from "../../assets/icons/bolt.svg";
 import BoltSlash from "../../assets/icons/bolt-slash.svg";
 import Settings from "../../assets/icons/setting.svg";
 import CameraChange from "../../assets/icons/camera-change.svg";
+import KeepBackground from "../../assets/icons/image-plus.svg";
+import RemoveBackground from "../../assets/icons/image-block.svg";
+
+import Constants from "expo-constants";
 
 const HomePage = ({ navigation }) => {
+  const { manifest } = Constants;
+
   //Use State
   const [isLoading, setIsLoading] = useState(true);
   const [hasPermission, setHasPermission] = useState(null);
   const [type, setType] = useState(Camera.Constants.Type.back);
   const [flash, setFlash] = useState(Camera.Constants.FlashMode.off);
   const [photoTaken, setPhotoTaken] = useState(false);
+  const [willRemoveBackground, setWillRemoveBackground] = useState(false);
 
   const isFocused = useIsFocused();
 
@@ -113,11 +121,40 @@ const HomePage = ({ navigation }) => {
     );
   };
 
+  //Function for background removal mode
+  const changeBackground = () => {
+    setWillRemoveBackground(!willRemoveBackground);
+  };
+
   const takePicture = async () => {
-    if (cameraRef.current) {
-      const options = { quality: 0.8 };
-      const data = await cameraRef.current.takePictureAsync(options);
-      setPhotoTaken(data);
+    try {
+      const uri = `http://db7d-78-180-137-52.ngrok.io`;
+
+      if (cameraRef.current) {
+        const options = { quality: 0.7, base64: true };
+        const data = await cameraRef.current.takePictureAsync(options);
+
+        if (!willRemoveBackground) return setPhotoTaken(data);
+
+        const image = { type: "image", base64: data.base64, uri: data.uri };
+
+        var response = await FileSystem.uploadAsync(
+          `${uri}/objectEx`,
+          image.uri,
+          {
+            headers: {
+              "content-type": "image/jpeg",
+            },
+            httpMethod: "POST",
+            uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+          }
+        );
+
+        const imageUrl64 = JSON.parse(response.body).imgUri64;
+        setPhotoTaken(imageUrl64);
+      }
+    } catch (error) {
+      console.log(error);
     }
   };
 
@@ -189,6 +226,27 @@ const HomePage = ({ navigation }) => {
               <Bolt height={30} width={30} />
             ) : (
               <BoltSlash height={30} width={30} />
+            )}
+          </TouchableOpacity>
+
+          {/* Background state button */}
+          <TouchableOpacity
+            onPress={changeBackground}
+            activeOpacity={0.8}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 50,
+              backgroundColor: "rgba(0, 0, 0, 0.3)",
+              justifyContent: "center",
+              alignItems: "center",
+              marginBottom: 10,
+            }}
+          >
+            {willRemoveBackground === true ? (
+              <KeepBackground height={30} width={30} />
+            ) : (
+              <RemoveBackground height={30} width={30} />
             )}
           </TouchableOpacity>
 
