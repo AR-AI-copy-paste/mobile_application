@@ -21,6 +21,7 @@ import * as Generate from "project-name-generator";
 import * as FileSystem from "expo-file-system";
 import * as MediaLibrary from "expo-media-library";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
+import * as ImageManipulator from "expo-image-manipulator";
 
 //Assets import
 import BackArrow from "../../assets/icons/backarrow.svg";
@@ -40,25 +41,14 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
   const [isPrivate, setIsPrivate] = useState(true);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [compressFile, setFile] = useState(null);
 
   const submitImage = async () => {
     if (isLoading) return;
     setIsLoading(true);
     try {
-      let filename = "";
-      if (!photoTaken.uri) {
-        filename = FileSystem.documentDirectory + `${new Date().getTime()}.png`;
-        await FileSystem.writeAsStringAsync(
-          filename,
-          photoTaken.split("data:image/png;base64,")[1],
-          {
-            encoding: FileSystem.EncodingType.Base64,
-          }
-        );
-      }
-
       const imageUrl = await uploadImage(
-        photoTaken.uri ? photoTaken.uri : filename
+        photoTaken.uri ? photoTaken.uri : compressFile.uri
       );
 
       const { _data, error } = await supabase.from("images").insert({
@@ -104,6 +94,29 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
     );
 
     return () => backHandler.remove();
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      const filename =
+        FileSystem.documentDirectory + `${new Date().getTime()}.png`;
+      await FileSystem.writeAsStringAsync(
+        filename,
+        photoTaken.split("data:image/png;base64,")[1],
+        {
+          encoding: FileSystem.EncodingType.Base64,
+        }
+      );
+
+      const compressedFile = await ImageManipulator.manipulateAsync(
+        filename,
+        [],
+        { compress: 0.3, base64: false }
+      );
+
+      console.log(compressedFile);
+      setFile(compressedFile);
+    })();
   }, []);
 
   return (
@@ -211,6 +224,7 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
             photoTaken={photoTaken}
             isPrivate={isPrivate}
             setIsPrivate={setIsPrivate}
+            compressFile={compressFile}
           />
         </InteractionProvider>
       </View>
@@ -223,6 +237,7 @@ const OptionBar = ({
   photoTaken,
   isPrivate,
   setIsPrivate,
+  compressFile,
   ...rest
 }) => {
   return (
@@ -258,34 +273,13 @@ const OptionBar = ({
           activeOpacity={0.8}
           onPress={async () => {
             try {
-              if (photoTaken.uri) {
-                await MediaLibrary.saveToLibraryAsync(
-                  photoTaken.uri ? photoTaken.uri : photoTaken
-                );
-                Toast.show({
-                  type: "success",
-                  text1: "Photo saved to gallery successfully",
-                });
-              } else {
-                const filename =
-                  FileSystem.documentDirectory + `${new Date().getTime()}.png`;
-                await FileSystem.writeAsStringAsync(
-                  filename,
-                  photoTaken.split("data:image/png;base64,")[1],
-                  {
-                    encoding: FileSystem.EncodingType.Base64,
-                  }
-                );
-
-                const mediaResult = await MediaLibrary.saveToLibraryAsync(
-                  filename
-                );
-
-                Toast.show({
-                  type: "success",
-                  text1: "Photo saved to gallery successfully",
-                });
-              }
+              await MediaLibrary.saveToLibraryAsync(
+                photoTaken.uri ? photoTaken.uri : compressFile.uri
+              );
+              Toast.show({
+                type: "success",
+                text1: "Photo saved to gallery successfully",
+              });
             } catch (error) {
               Toast.show({
                 type: "error",
