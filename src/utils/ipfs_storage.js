@@ -10,6 +10,9 @@ export const uploadImage = async (uri) => {
   if (!uri) return;
 
   try {
+
+    
+
     const response = await FileSystem.uploadAsync(
       "https://api.web3.storage/upload",
       uri,

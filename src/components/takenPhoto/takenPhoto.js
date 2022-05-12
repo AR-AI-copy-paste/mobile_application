@@ -40,13 +40,26 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
   const [isPrivate, setIsPrivate] = useState(true);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
 
   const submitImage = async () => {
     if (isLoading) return;
     setIsLoading(true);
     try {
-      const imageUrl = await uploadImage(photoTaken.uri);
+      let filename = "";
+      if (!photoTaken.uri) {
+        filename = FileSystem.documentDirectory + `${new Date().getTime()}.png`;
+        await FileSystem.writeAsStringAsync(
+          filename,
+          photoTaken.split("data:image/png;base64,")[1],
+          {
+            encoding: FileSystem.EncodingType.Base64,
+          }
+        );
+      }
+
+      const imageUrl = await uploadImage(
+        photoTaken.uri ? photoTaken.uri : filename
+      );
 
       const { _data, error } = await supabase.from("images").insert({
         title,
@@ -85,8 +98,8 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
     const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
       () => {
-          setPhotoTaken(false);
-          return true;
+        setPhotoTaken(false);
+        return true;
       }
     );
 
@@ -245,11 +258,34 @@ const OptionBar = ({
           activeOpacity={0.8}
           onPress={async () => {
             try {
-              await MediaLibrary.saveToLibraryAsync(photoTaken.uri);
-              Toast.show({
-                type: "success",
-                text1: "Photo saved to gallery successfully",
-              });
+              if (photoTaken.uri) {
+                await MediaLibrary.saveToLibraryAsync(
+                  photoTaken.uri ? photoTaken.uri : photoTaken
+                );
+                Toast.show({
+                  type: "success",
+                  text1: "Photo saved to gallery successfully",
+                });
+              } else {
+                const filename =
+                  FileSystem.documentDirectory + `${new Date().getTime()}.png`;
+                await FileSystem.writeAsStringAsync(
+                  filename,
+                  photoTaken.split("data:image/png;base64,")[1],
+                  {
+                    encoding: FileSystem.EncodingType.Base64,
+                  }
+                );
+
+                const mediaResult = await MediaLibrary.saveToLibraryAsync(
+                  filename
+                );
+
+                Toast.show({
+                  type: "success",
+                  text1: "Photo saved to gallery successfully",
+                });
+              }
             } catch (error) {
               Toast.show({
                 type: "error",

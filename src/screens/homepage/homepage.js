@@ -48,7 +48,7 @@ const HomePage = ({ navigation }) => {
   const [type, setType] = useState(Camera.Constants.Type.back);
   const [flash, setFlash] = useState(Camera.Constants.FlashMode.off);
   const [photoTaken, setPhotoTaken] = useState(false);
-  const [willRemoveBackground, setWillRemoveBackground] = useState(false);
+  const [willRemoveBackground, setWillRemoveBackground] = useState(true);
   const [isTakingPic, setIsTakingPic] = useState(false);
 
   const isFocused = useIsFocused();
@@ -62,8 +62,10 @@ const HomePage = ({ navigation }) => {
 
   //Checking is user has a profile
   useEffect(() => {
+    
     try {
       (async () => {
+        
         const { data, error } = await supabase
           .from("profiles")
           .select()
@@ -144,7 +146,7 @@ const HomePage = ({ navigation }) => {
       if (cameraRef.current) {
         const options = { quality: 1, base64: true };
         const data = await cameraRef.current.takePictureAsync(options);
-        const file = await ImageManipulator.manipulateAsync(data.uri, [], { compress: 0.2 , base64 : true });
+        const file = await ImageManipulator.manipulateAsync(data.uri, [], { compress: 0.5 , base64 : true });
         
         if (!willRemoveBackground) {
           setIsTakingPic(false);

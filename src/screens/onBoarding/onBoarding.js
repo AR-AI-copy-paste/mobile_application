@@ -68,6 +68,7 @@ const OnBoading = ({ navigation }) => {
           userName: username.toLowerCase(),
           email: supabase.auth.user().email,
           ProfileImage: profileUrl,
+          scans: 0,
         },
       ]);
 
@@ -80,7 +81,7 @@ const OnBoading = ({ navigation }) => {
         return setIsLoading(false);
       }
 
-      navigation.replace("Home")
+      navigation.replace("Home");
 
       setIsLoading(false);
     } catch (error) {
