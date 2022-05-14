@@ -28,6 +28,7 @@ import BackArrow from "../../assets/icons/backarrow.svg";
 import Download from "../../assets/icons/download_white.svg";
 import Locked from "../../assets/icons/lock.svg";
 import Unlocked from "../../assets/icons/unlock.svg";
+import Send from "../../assets/icons/message.svg";
 
 //Utils import
 import { uploadImage } from "../../utils/ipfs_storage";
@@ -42,6 +43,7 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [compressFile, setFile] = useState(null);
+  const [webSocket, setWebSocket] = useState(null);
 
   const submitImage = async () => {
     if (isLoading) return;
@@ -83,6 +85,22 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
     }
   };
 
+  // useEffect
+  useEffect(() => {
+    let ws = new WebSocket("ws://192.168.1.101:8084");
+    ws.onopen = () => {
+      Toast.show({
+        type: "success",
+        position: "bottom",
+        text1: "Connected to desktop app",
+      });
+
+      ws.send("Mobile app conencted");
+
+      setWebSocket(ws);
+    };
+  }, []);
+
   //useEffect
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -111,10 +129,9 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
       const compressedFile = await ImageManipulator.manipulateAsync(
         filename,
         [],
-        { compress: 0.3, base64: false }
+        { compress: 0.3, base64: true }
       );
 
-      console.log(compressedFile);
       setFile(compressedFile);
     })();
   }, []);
@@ -225,6 +242,7 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
             isPrivate={isPrivate}
             setIsPrivate={setIsPrivate}
             compressFile={compressFile}
+            webSocket={webSocket}
           />
         </InteractionProvider>
       </View>
@@ -238,6 +256,7 @@ const OptionBar = ({
   isPrivate,
   setIsPrivate,
   compressFile,
+  webSocket,
   ...rest
 }) => {
   return (
@@ -260,7 +279,7 @@ const OptionBar = ({
       <View
         style={{
           width: 50,
-          height: 130,
+          height: 170,
           borderRadius: 100,
           backgroundColor: "rgba(0,0,0,0.4)",
           paddingVertical: 20,
@@ -295,6 +314,7 @@ const OptionBar = ({
         {/* Private/Public button */}
         <TouchableOpacity
           activeOpacity={0.8}
+          style={{ marginBottom: 20 }}
           onPress={async () => {
             setIsPrivate(!isPrivate);
           }}
@@ -304,6 +324,34 @@ const OptionBar = ({
           ) : (
             <Unlocked height={30} width={30} />
           )}
+        </TouchableOpacity>
+
+        {/* Share button */}
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={async () => {
+            try {
+              const message = photoTaken.uri
+                ? photoTaken.uri
+                : compressFile.uri;
+
+              const manipulator = await ImageManipulator.manipulateAsync(
+                message,
+                [{ resize: { width: 720, height: 1280 } }],
+                {
+                  compress: 0.3,
+                  format: ImageManipulator.SaveFormat.PNG,
+                  base64: true,
+                }
+              );
+
+              webSocket.send(manipulator.base64);
+            } catch (e) {
+              console.log(e);
+            }
+          }}
+        >
+          <Send height={30} width={30} />
         </TouchableOpacity>
       </View>
     </Animated.View>
