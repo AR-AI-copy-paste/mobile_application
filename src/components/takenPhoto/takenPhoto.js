@@ -442,45 +442,27 @@ const OptionBar = ({
           activeOpacity={0.8}
           onPress={async () => {
             try {
-              console.log("GETTING TEXT");
               const message = photoTaken.uri
                 ? photoTaken.uri
                 : compressFile.uri;
 
-              const manipulator = await ImageManipulator.manipulateAsync(
-                message,
-                [{ resize: { width: 720, height: 1280 } }],
-                {
-                  compress: 0.3,
-                  format: ImageManipulator.SaveFormat.PNG,
-                  base64: true,
-                }
-              );
-
-              var response = await FileSystem.uploadAsync(
-                `http://copycatserver.aimensahnoun.com/expoTextEx`,
-                manipulator.uri,
-                {
-                  headers: {
-                    "content-type": "image/jpeg",
-                  },
-                  httpMethod: "POST",
-                  uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
-                }
-              );
-
-              console.log(response.body);
-
-              // const imageUrl64 = JSON.parse(response.body);
-
-              // const messageObject = {
-              //   type: "image",
-              //   message: manipulator.base64,
-              // };
+              const manipulator =
+                processType === "image"
+                  ? await ImageManipulator.manipulateAsync(
+                      message,
+                      [{ resize: { width: 720, height: 1280 } }],
+                      {
+                        compress: 0.3,
+                        format: ImageManipulator.SaveFormat.PNG,
+                        base64: true,
+                      }
+                    )
+                  : null;
 
               const messageObject = {
-                type: "text",
-                message: response.body,
+                type: processType,
+                message:
+                  processType === "image" ? manipulator.base64 : photoTaken,
               };
 
               webSocket.send(JSON.stringify(messageObject));
