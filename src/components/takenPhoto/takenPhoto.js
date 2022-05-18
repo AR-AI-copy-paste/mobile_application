@@ -11,6 +11,7 @@ import {
   BackHandler,
   ScrollView,
   Text,
+  Share,
 } from "react-native";
 
 //Custom Components import
@@ -24,8 +25,7 @@ import * as FileSystem from "expo-file-system";
 import * as MediaLibrary from "expo-media-library";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
 import * as ImageManipulator from "expo-image-manipulator";
-import * as Clipboard from 'expo-clipboard';
-
+import * as Clipboard from "expo-clipboard";
 
 //Assets import
 import BackArrow from "../../assets/icons/backarrow.svg";
@@ -33,7 +33,8 @@ import Download from "../../assets/icons/download_white.svg";
 import Locked from "../../assets/icons/lock.svg";
 import Unlocked from "../../assets/icons/unlock.svg";
 import Send from "../../assets/icons/message.svg";
-import ClipboardIcon from "../../assets/icons/clipboard.svg"
+import ClipboardIcon from "../../assets/icons/clipboard.svg";
+import ShareIcon from "../../assets/icons/share-white.svg";
 
 //Utils import
 import { uploadImage } from "../../utils/ipfs_storage";
@@ -238,46 +239,65 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken, processType }) => {
               }}
             />
           </TouchableOpacity>
+
+          <InteractionProvider
+            timeout={5 * 1000} // idle after 1m
+            onActive={() => setisBarActive(true)}
+            onInactive={() => setisBarActive(false)}
+          >
+            <OptionBar
+              isActive={isBarActive}
+              photoTaken={photoTaken}
+              isPrivate={isPrivate}
+              setIsPrivate={setIsPrivate}
+              compressFile={compressFile}
+              webSocket={webSocket}
+              processType={processType}
+            />
+          </InteractionProvider>
         </View>
       ) : (
-        <ScrollView
-          style={{
-            flex: 1,
-            backgroundColor: "white",
-          }}
-        >
-          <View
+        <>
+          <ScrollView
             style={{
               flex: 1,
-              padding: 20,
+              backgroundColor: "white",
             }}
           >
-            <Text
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={() => setisBarActive(true)}
               style={{
-                fontFamily: "Poppins_400Regular",
+                flex: 1,
+                padding: 20,
               }}
             >
-              {photoTaken}
-            </Text>
-          </View>
-        </ScrollView>
+              <Text
+                style={{
+                  fontFamily: "Poppins_400Regular",
+                }}
+              >
+                {photoTaken}
+              </Text>
+            </TouchableOpacity>
+            <InteractionProvider
+              timeout={5 * 1000} // idle after 1m
+              onActive={() => setisBarActive(true)}
+              onInactive={() => setisBarActive(false)}
+            >
+              <OptionBar
+                isActive={isBarActive}
+                photoTaken={photoTaken}
+                isPrivate={isPrivate}
+                setIsPrivate={setIsPrivate}
+                compressFile={compressFile}
+                webSocket={webSocket}
+                processType={processType}
+              />
+            </InteractionProvider>
+          </ScrollView>
+        </>
       )}
-
-      <InteractionProvider
-        timeout={5 * 1000} // idle after 1m
-        onActive={() => setisBarActive(true)}
-        onInactive={() => setisBarActive(false)}
-      >
-        <OptionBar
-          isActive={isBarActive}
-          photoTaken={photoTaken}
-          isPrivate={isPrivate}
-          setIsPrivate={setIsPrivate}
-          compressFile={compressFile}
-          webSocket={webSocket}
-          processType={processType}
-        />
-      </InteractionProvider>
     </SafeAreaView>
   );
 };
@@ -312,7 +332,7 @@ const OptionBar = ({
       <View
         style={{
           width: 50,
-          height: processType == "image" ? 170 : 120,
+          height: 170,
           borderRadius: 100,
           backgroundColor: "rgba(0,0,0,0.4)",
           paddingVertical: 20,
@@ -362,27 +382,60 @@ const OptionBar = ({
             </TouchableOpacity>
           </>
         ) : (
-          <TouchableOpacity
-            style={{ marginBottom: 20 }}
-            activeOpacity={0.8}
-            onPress={async () => {
-              try {
-                await Clipboard.setStringAsync(photoTaken);
-                Toast.show({
-                  type: "success",
-                  text1: "Text Copied to clipboard",
-                });
-              } catch (error) {
-                Toast.show({
-                  type: "error",
-                  text1: "Something went wrong",
-                  text2: error.message,
-                });
-              }
-            }}
-          >
-            <ClipboardIcon height={30} width={30} />
-          </TouchableOpacity>
+          <>
+            {/* // Copy to clipboard button */}
+            <TouchableOpacity
+              style={{ marginBottom: 20 }}
+              activeOpacity={0.8}
+              onPress={async () => {
+                try {
+                  await Clipboard.setStringAsync(photoTaken);
+                  Toast.show({
+                    type: "success",
+                    text1: "Text Copied to clipboard",
+                  });
+                } catch (error) {
+                  Toast.show({
+                    type: "error",
+                    text1: "Something went wrong",
+                    text2: error.message,
+                  });
+                }
+              }}
+            >
+              <ClipboardIcon height={30} width={30} />
+            </TouchableOpacity>
+
+            {/* Share text button */}
+            <TouchableOpacity
+              style={{ marginBottom: 20 }}
+              activeOpacity={0.8}
+              onPress={async () => {
+                try {
+                  const result = await Share.share({
+                    message: `This text was scanned using CopyPaste:\n\n\n${photoTaken}`,
+                  });
+                  if (result.action === Share.sharedAction) {
+                    if (result.activityType) {
+                      // shared with activity type of result.activityType
+                    } else {
+                      // shared
+                    }
+                  } else if (result.action === Share.dismissedAction) {
+                    // dismissed
+                  }
+                } catch (error) {
+                  Toast.show({
+                    type: "error",
+                    text1: "Something went wrong",
+                    text2: error.message,
+                  });
+                }
+              }}
+            >
+              <ShareIcon height={30} width={30} />
+            </TouchableOpacity>
+          </>
         )}
         {/* Share button */}
         <TouchableOpacity
