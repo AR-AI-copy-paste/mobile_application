@@ -19,11 +19,15 @@ import Toast from "react-native-toast-message";
 import { Camera } from "expo-camera";
 import { useIsFocused } from "@react-navigation/native";
 import * as FileSystem from "expo-file-system";
-import * as ImageManipulator from 'expo-image-manipulator';
-
+import * as ImageManipulator from "expo-image-manipulator";
+import TesseractOcr, {
+  LANG_ENGLISH,
+  useEventListener,
+} from "react-native-tesseract-ocr";
 
 //Supabase import
 import { supabase } from "../../utils/supabase";
+import { GOOGLE_CLOUD } from "@env";
 
 //recoil import
 import { useRecoilValue, useRecoilState } from "recoil";
@@ -36,6 +40,8 @@ import Settings from "../../assets/icons/setting.svg";
 import CameraChange from "../../assets/icons/camera-change.svg";
 import KeepBackground from "../../assets/icons/image-plus.svg";
 import RemoveBackground from "../../assets/icons/image-block.svg";
+import TextIcon from "../../assets/icons/text.svg";
+import Image from "../../assets/icons/image.svg";
 
 import Constants from "expo-constants";
 
@@ -50,6 +56,9 @@ const HomePage = ({ navigation }) => {
   const [photoTaken, setPhotoTaken] = useState(false);
   const [willRemoveBackground, setWillRemoveBackground] = useState(true);
   const [isTakingPic, setIsTakingPic] = useState(false);
+  const [cameraMode, setCameraMode] = useState(true);
+  const [processType, setProcessType] = useState(null);
+  const [label, setLabel] = useState(null);
 
   const isFocused = useIsFocused();
 
@@ -62,10 +71,8 @@ const HomePage = ({ navigation }) => {
 
   //Checking is user has a profile
   useEffect(() => {
-    
     try {
       (async () => {
-        
         const { data, error } = await supabase
           .from("profiles")
           .select()
@@ -146,35 +153,199 @@ const HomePage = ({ navigation }) => {
       if (cameraRef.current) {
         const options = { quality: 1, base64: true };
         const data = await cameraRef.current.takePictureAsync(options);
-        const file = await ImageManipulator.manipulateAsync(data.uri, [], { compress: 0.5 , base64 : true });
-        
-        if (!willRemoveBackground) {
-          setIsTakingPic(false);
-          return setPhotoTaken(file);
-        }
-
-        const image = { type: "image", base64: file.base64, uri: file.uri };
-
-        var response = await FileSystem.uploadAsync(
-          `${uri}/expoObjectEx`,
-          image.uri,
+        const file = await ImageManipulator.manipulateAsync(
+          data.uri,
+          [{ resize: { width: 720, height: 1280 } }],
           {
-            headers: {
-              "content-type": "image/jpeg",
-            },
-            httpMethod: "POST",
-            uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+            compress: 0.5,
+            format: ImageManipulator.SaveFormat.JPEG,
+            base64: true,
           }
         );
 
-        const imageUrl64 = JSON.parse(response.body).imgUri64;
-        setIsTakingPic(false);
-        setPhotoTaken(imageUrl64);
+        if (cameraMode) {
+          setProcessType("image");
+          if (!willRemoveBackground) {
+            let body = JSON.stringify({
+              requests: [
+                {
+                  features: [
+                    // { type: "LABEL_DETECTION", maxResults: 10 },
+                    // { type: "LANDMARK_DETECTION", maxResults: 5 },
+                    // { type: "FACE_DETECTION", maxResults: 5 },
+                    // { type: "LOGO_DETECTION", maxResults: 5 },
+                    // { type: "TEXT_DETECTION", maxResults: 5 },
+                    // { type: "DOCUMENT_TEXT_DETECTION", maxResults: 5 },
+                    { type: "SAFE_SEARCH_DETECTION", maxResults: 5 },
+                    // { type: "IMAGE_PROPERTIES", maxResults: 5 },
+                    // { type: "CROP_HINTS", maxResults: 5 },
+                    { type: "WEB_DETECTION", maxResults: 5 },
+                  ],
+                  image: {
+                    content: file.base64,
+                  },
+                },
+              ],
+            });
+
+            let googleResponse = await fetch(
+              "https://vision.googleapis.com/v1/images:annotate?key=" +
+                GOOGLE_CLOUD,
+              {
+                headers: {
+                  Accept: "application/json",
+                  "Content-Type": "application/json",
+                },
+                method: "POST",
+                body: body,
+              }
+            );
+            let responseJson = await googleResponse.json();
+
+            if (
+              responseJson.responses[0].safeSearchAnnotation.adult ===
+                "LIKELY" ||
+              responseJson.responses[0].safeSearchAnnotation.adult ===
+                "POSSIBLE" ||
+              responseJson.responses[0].safeSearchAnnotation.adult ===
+                "VERY_LIKELY"
+            ) {
+              setIsTakingPic(false);
+              return Toast.show({
+                type: "error",
+                text1: "Adult content not allowed",
+              });
+            }
+            setLabel(
+              responseJson.responses[0].webDetection.bestGuessLabels[0].label
+            );
+            setIsTakingPic(false);
+            return setPhotoTaken(file);
+          }
+
+          const image = { type: "image", base64: file.base64, uri: file.uri };
+
+          var response = await FileSystem.uploadAsync(
+            `${uri}/expoObjectEx`,
+            image.uri,
+            {
+              headers: {
+                "content-type": "image/jpeg",
+              },
+              httpMethod: "POST",
+              uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+            }
+          );
+
+          const imageUrl64 = JSON.parse(response.body).imgUri64;
+
+          let body = JSON.stringify({
+            requests: [
+              {
+                features: [
+                  // { type: "LABEL_DETECTION", maxResults: 10 },
+                  // { type: "LANDMARK_DETECTION", maxResults: 5 },
+                  // { type: "FACE_DETECTION", maxResults: 5 },
+                  // { type: "LOGO_DETECTION", maxResults: 5 },
+                  // { type: "TEXT_DETECTION", maxResults: 5 },
+                  // { type: "DOCUMENT_TEXT_DETECTION", maxResults: 5 },
+                  { type: "SAFE_SEARCH_DETECTION", maxResults: 5 },
+                  // { type: "IMAGE_PROPERTIES", maxResults: 5 },
+                  // { type: "CROP_HINTS", maxResults: 5 },
+                  { type: "WEB_DETECTION", maxResults: 5 },
+                ],
+                image: {
+                  content: imageUrl64.split("data:image/png;base64,")[1],
+                },
+              },
+            ],
+          });
+
+          let googleResponse = await fetch(
+            "https://vision.googleapis.com/v1/images:annotate?key=" +
+              GOOGLE_CLOUD,
+            {
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+              },
+              method: "POST",
+              body: body,
+            }
+          );
+          let responseJson = await googleResponse.json();
+
+          if (
+            responseJson.responses[0].safeSearchAnnotation.adult === "LIKELY" ||
+            responseJson.responses[0].safeSearchAnnotation.adult ===
+              "POSSIBLE" ||
+            responseJson.responses[0].safeSearchAnnotation.adult ===
+              "VERY_LIKELY"
+          ) {
+            setIsTakingPic(false);
+            return Toast.show({
+              type: "error",
+              text1: "Adult content not allowed",
+            });
+          }
+          setLabel(
+            responseJson.responses[0].webDetection.bestGuessLabels[0].label
+          );
+          setPhotoTaken(imageUrl64);
+          setIsTakingPic(false);
+        } else {
+          let body = JSON.stringify({
+            requests: [
+              {
+                features: [
+                  // { type: "LABEL_DETECTION", maxResults: 10 },
+                  // { type: "LANDMARK_DETECTION", maxResults: 5 },
+                  // { type: "FACE_DETECTION", maxResults: 5 },
+                  // { type: "LOGO_DETECTION", maxResults: 5 },
+                  { type: "TEXT_DETECTION", maxResults: 5 },
+                  { type: "DOCUMENT_TEXT_DETECTION", maxResults: 5 },
+                  // { type: "SAFE_SEARCH_DETECTION", maxResults: 5 },
+                  // { type: "IMAGE_PROPERTIES", maxResults: 5 },
+                  // { type: "CROP_HINTS", maxResults: 5 },
+                  // { type: "WEB_DETECTION", maxResults: 5 },
+                ],
+                image: {
+                  content: file.base64,
+                },
+              },
+            ],
+          });
+
+          let response = await fetch(
+            "https://vision.googleapis.com/v1/images:annotate?key=" +
+              GOOGLE_CLOUD,
+            {
+              headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+              },
+              method: "POST",
+              body: body,
+            }
+          );
+          let responseJson = await response.json();
+
+          let text = responseJson.responses[0].textAnnotations[0].description;
+
+          setProcessType("text");
+          setPhotoTaken(text);
+          setIsTakingPic(false);
+        }
       }
     } catch (error) {
       setIsTakingPic(false);
       console.log(error);
     }
+  };
+
+  //Function for changing the processing mode
+  const changeProcessMode = () => {
+    setCameraMode(!cameraMode);
   };
 
   //Displaying the loading spinner before the data is loaded
@@ -183,7 +354,13 @@ const HomePage = ({ navigation }) => {
   }
 
   if (photoTaken) {
-    return <TakenPhoto setPhotoTaken={setPhotoTaken} photoTaken={photoTaken} />;
+    return (
+      <TakenPhoto
+        setPhotoTaken={setPhotoTaken}
+        photoTaken={photoTaken}
+        processType={processType}
+      />
+    );
   }
 
   if (hasPermission === null) {
@@ -244,6 +421,27 @@ const HomePage = ({ navigation }) => {
             }}
           >
             <CameraChange height={30} width={30} />
+          </TouchableOpacity>
+
+          {/* Mode Change button */}
+          <TouchableOpacity
+            onPress={changeProcessMode}
+            activeOpacity={0.8}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 50,
+              backgroundColor: "rgba(0, 0, 0, 0.3)",
+              justifyContent: "center",
+              alignItems: "center",
+              marginBottom: 10,
+            }}
+          >
+            {cameraMode ? (
+              <Image height={30} width={30} />
+            ) : (
+              <TextIcon height={30} width={30} />
+            )}
           </TouchableOpacity>
 
           {/* Flash button */}

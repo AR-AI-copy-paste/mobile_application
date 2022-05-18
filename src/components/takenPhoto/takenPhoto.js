@@ -9,6 +9,8 @@ import {
   Animated,
   TextInput,
   BackHandler,
+  ScrollView,
+  Text
 } from "react-native";
 
 //Custom Components import
@@ -34,7 +36,7 @@ import Send from "../../assets/icons/message.svg";
 import { uploadImage } from "../../utils/ipfs_storage";
 import { supabase } from "../../utils/supabase";
 
-const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
+const TakenPhoto = ({ setPhotoTaken, photoTaken, processType }) => {
   // useState
   const [title, setTitle] = useState(Generate.generate().dashed);
   const [originalTitle, setOriginalTitle] = useState(title);
@@ -120,6 +122,7 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
         FileSystem.documentDirectory + `${new Date().getTime()}.png`;
       await FileSystem.writeAsStringAsync(
         filename,
+
         photoTaken.split("data:image/png;base64,")[1],
         {
           encoding: FileSystem.EncodingType.Base64,
@@ -129,7 +132,7 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
       const compressedFile = await ImageManipulator.manipulateAsync(
         filename,
         [],
-        { compress: 0.3, base64: true }
+        { compress: 0.3, base64: true, format: ImageManipulator.SaveFormat.PNG }
       );
 
       setFile(compressedFile);
@@ -207,45 +210,65 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken }) => {
       </View>
 
       {/* Image */}
-      <View
-        style={{
-          flex: 1,
-          flexGrow: 1,
-          alignSelf: "stretch",
-          backgroundColor: "#fff",
-          position: "relative",
-        }}
-      >
-        <TouchableOpacity
-          activeOpacity={1}
-          onPress={() => setisBarActive(true)}
+      {processType == "image" ? (
+        <View
+          style={{
+            flex: 1,
+            flexGrow: 1,
+            alignSelf: "stretch",
+            backgroundColor: "#fff",
+            position: "relative",
+          }}
         >
-          <Image
-            source={{
-              uri: photoTaken.uri ? photoTaken.uri : photoTaken,
-            }}
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={() => setisBarActive(true)}
+          >
+            <Image
+              source={{
+                uri: photoTaken.uri ? photoTaken.uri : photoTaken,
+              }}
+              style={{
+                width: "100%",
+                height: "100%",
+                resizeMode: "cover",
+              }}
+            />
+          </TouchableOpacity>
+          <InteractionProvider
+            timeout={5 * 1000} // idle after 1m
+            onActive={() => setisBarActive(true)}
+            onInactive={() => setisBarActive(false)}
+          >
+            <OptionBar
+              isActive={isBarActive}
+              photoTaken={photoTaken}
+              isPrivate={isPrivate}
+              setIsPrivate={setIsPrivate}
+              compressFile={compressFile}
+              webSocket={webSocket}
+            />
+          </InteractionProvider>
+        </View>
+      ) : (
+        <ScrollView
+          style={{
+            flex: 1,
+            backgroundColor: "white",
+          }}
+        >
+          <View
             style={{
-              width: "100%",
-              height: "100%",
-              resizeMode: "cover",
+              flex: 1,
+              padding: 20,
             }}
-          />
-        </TouchableOpacity>
-        <InteractionProvider
-          timeout={5 * 1000} // idle after 1m
-          onActive={() => setisBarActive(true)}
-          onInactive={() => setisBarActive(false)}
-        >
-          <OptionBar
-            isActive={isBarActive}
-            photoTaken={photoTaken}
-            isPrivate={isPrivate}
-            setIsPrivate={setIsPrivate}
-            compressFile={compressFile}
-            webSocket={webSocket}
-          />
-        </InteractionProvider>
-      </View>
+          >
+            <Text style={{
+              fontFamily: "Poppins_400Regular",
+            }}>{photoTaken}</Text>
+          </View>
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 };
@@ -331,6 +354,7 @@ const OptionBar = ({
           activeOpacity={0.8}
           onPress={async () => {
             try {
+              console.log("GETTING TEXT");
               const message = photoTaken.uri
                 ? photoTaken.uri
                 : compressFile.uri;
@@ -345,7 +369,33 @@ const OptionBar = ({
                 }
               );
 
-              webSocket.send(manipulator.base64);
+              var response = await FileSystem.uploadAsync(
+                `http://copycatserver.aimensahnoun.com/expoTextEx`,
+                manipulator.uri,
+                {
+                  headers: {
+                    "content-type": "image/jpeg",
+                  },
+                  httpMethod: "POST",
+                  uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+                }
+              );
+
+              console.log(response.body);
+
+              // const imageUrl64 = JSON.parse(response.body);
+
+              // const messageObject = {
+              //   type: "image",
+              //   message: manipulator.base64,
+              // };
+
+              const messageObject = {
+                type: "text",
+                message: response.body,
+              };
+
+              webSocket.send(JSON.stringify(messageObject));
             } catch (e) {
               console.log(e);
             }
