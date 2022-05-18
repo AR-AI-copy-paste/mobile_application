@@ -10,7 +10,7 @@ import {
   TextInput,
   BackHandler,
   ScrollView,
-  Text
+  Text,
 } from "react-native";
 
 //Custom Components import
@@ -24,6 +24,8 @@ import * as FileSystem from "expo-file-system";
 import * as MediaLibrary from "expo-media-library";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
 import * as ImageManipulator from "expo-image-manipulator";
+import * as Clipboard from 'expo-clipboard';
+
 
 //Assets import
 import BackArrow from "../../assets/icons/backarrow.svg";
@@ -31,6 +33,7 @@ import Download from "../../assets/icons/download_white.svg";
 import Locked from "../../assets/icons/lock.svg";
 import Unlocked from "../../assets/icons/unlock.svg";
 import Send from "../../assets/icons/message.svg";
+import ClipboardIcon from "../../assets/icons/clipboard.svg"
 
 //Utils import
 import { uploadImage } from "../../utils/ipfs_storage";
@@ -235,20 +238,6 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken, processType }) => {
               }}
             />
           </TouchableOpacity>
-          <InteractionProvider
-            timeout={5 * 1000} // idle after 1m
-            onActive={() => setisBarActive(true)}
-            onInactive={() => setisBarActive(false)}
-          >
-            <OptionBar
-              isActive={isBarActive}
-              photoTaken={photoTaken}
-              isPrivate={isPrivate}
-              setIsPrivate={setIsPrivate}
-              compressFile={compressFile}
-              webSocket={webSocket}
-            />
-          </InteractionProvider>
         </View>
       ) : (
         <ScrollView
@@ -263,12 +252,32 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken, processType }) => {
               padding: 20,
             }}
           >
-            <Text style={{
-              fontFamily: "Poppins_400Regular",
-            }}>{photoTaken}</Text>
+            <Text
+              style={{
+                fontFamily: "Poppins_400Regular",
+              }}
+            >
+              {photoTaken}
+            </Text>
           </View>
         </ScrollView>
       )}
+
+      <InteractionProvider
+        timeout={5 * 1000} // idle after 1m
+        onActive={() => setisBarActive(true)}
+        onInactive={() => setisBarActive(false)}
+      >
+        <OptionBar
+          isActive={isBarActive}
+          photoTaken={photoTaken}
+          isPrivate={isPrivate}
+          setIsPrivate={setIsPrivate}
+          compressFile={compressFile}
+          webSocket={webSocket}
+          processType={processType}
+        />
+      </InteractionProvider>
     </SafeAreaView>
   );
 };
@@ -280,6 +289,7 @@ const OptionBar = ({
   setIsPrivate,
   compressFile,
   webSocket,
+  processType,
   ...rest
 }) => {
   return (
@@ -302,7 +312,7 @@ const OptionBar = ({
       <View
         style={{
           width: 50,
-          height: 170,
+          height: processType == "image" ? 170 : 120,
           borderRadius: 100,
           backgroundColor: "rgba(0,0,0,0.4)",
           paddingVertical: 20,
@@ -310,45 +320,70 @@ const OptionBar = ({
         }}
       >
         {/* Download button */}
-        <TouchableOpacity
-          style={{ marginBottom: 20 }}
-          activeOpacity={0.8}
-          onPress={async () => {
-            try {
-              await MediaLibrary.saveToLibraryAsync(
-                photoTaken.uri ? photoTaken.uri : compressFile.uri
-              );
-              Toast.show({
-                type: "success",
-                text1: "Photo saved to gallery successfully",
-              });
-            } catch (error) {
-              Toast.show({
-                type: "error",
-                text1: "Something went wrong",
-                text2: error.message,
-              });
-            }
-          }}
-        >
-          <Download height={30} width={30} />
-        </TouchableOpacity>
+        {processType == "image" ? (
+          <>
+            <TouchableOpacity
+              style={{ marginBottom: 20 }}
+              activeOpacity={0.8}
+              onPress={async () => {
+                try {
+                  await MediaLibrary.saveToLibraryAsync(
+                    photoTaken.uri ? photoTaken.uri : compressFile.uri
+                  );
+                  Toast.show({
+                    type: "success",
+                    text1: "Photo saved to gallery successfully",
+                  });
+                } catch (error) {
+                  Toast.show({
+                    type: "error",
+                    text1: "Something went wrong",
+                    text2: error.message,
+                  });
+                }
+              }}
+            >
+              <Download height={30} width={30} />
+            </TouchableOpacity>
 
-        {/* Private/Public button */}
-        <TouchableOpacity
-          activeOpacity={0.8}
-          style={{ marginBottom: 20 }}
-          onPress={async () => {
-            setIsPrivate(!isPrivate);
-          }}
-        >
-          {isPrivate ? (
-            <Locked height={30} width={30} />
-          ) : (
-            <Unlocked height={30} width={30} />
-          )}
-        </TouchableOpacity>
-
+            {/* Private/Public button */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={{ marginBottom: 20 }}
+              onPress={async () => {
+                setIsPrivate(!isPrivate);
+              }}
+            >
+              {isPrivate ? (
+                <Locked height={30} width={30} />
+              ) : (
+                <Unlocked height={30} width={30} />
+              )}
+            </TouchableOpacity>
+          </>
+        ) : (
+          <TouchableOpacity
+            style={{ marginBottom: 20 }}
+            activeOpacity={0.8}
+            onPress={async () => {
+              try {
+                await Clipboard.setStringAsync(photoTaken);
+                Toast.show({
+                  type: "success",
+                  text1: "Text Copied to clipboard",
+                });
+              } catch (error) {
+                Toast.show({
+                  type: "error",
+                  text1: "Something went wrong",
+                  text2: error.message,
+                });
+              }
+            }}
+          >
+            <ClipboardIcon height={30} width={30} />
+          </TouchableOpacity>
+        )}
         {/* Share button */}
         <TouchableOpacity
           activeOpacity={0.8}
