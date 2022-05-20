@@ -93,13 +93,15 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken, processType }) => {
 
   // useEffect
   useEffect(() => {
-    let ws = new WebSocket("ws://192.168.1.101:8084");
+    let ws = new WebSocket("ws://192.168.116.8:8084");
     ws.onopen = () => {
       Toast.show({
         type: "success",
         position: "bottom",
         text1: "Connected to desktop app",
       });
+
+      console.log('OPENED')
 
       ws.send("Mobile app conencted");
 

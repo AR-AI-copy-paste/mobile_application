@@ -157,7 +157,7 @@ const HomePage = ({ navigation }) => {
           data.uri,
           [{ resize: { width: 720, height: 1280 } }],
           {
-            compress: 0.5,
+            compress: 1,
             format: ImageManipulator.SaveFormat.JPEG,
             base64: true,
           }
