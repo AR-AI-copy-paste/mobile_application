@@ -93,15 +93,13 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken, processType }) => {
 
   // useEffect
   useEffect(() => {
-    let ws = new WebSocket("ws://192.168.116.8:8084");
+    let ws = new WebSocket("ws://192.168.1.101:8084");
     ws.onopen = () => {
       Toast.show({
         type: "success",
         position: "bottom",
         text1: "Connected to desktop app",
       });
-
-      console.log('OPENED')
 
       ws.send("Mobile app conencted");
 
@@ -415,7 +413,7 @@ const OptionBar = ({
               onPress={async () => {
                 try {
                   const result = await Share.share({
-                    message: `This text was scanned using CopyPaste:\n\n\n${photoTaken}`,
+                    message: `This text was scanned using CopyCat:\n\n\n${photoTaken}`,
                   });
                   if (result.action === Share.sharedAction) {
                     if (result.activityType) {
@@ -444,9 +442,12 @@ const OptionBar = ({
           activeOpacity={0.8}
           onPress={async () => {
             try {
-              const message = photoTaken.uri
-                ? photoTaken.uri
-                : compressFile.uri;
+              const message =
+                processType === "image"
+                  ? photoTaken.uri
+                    ? photoTaken.uri
+                    : compressFile.uri
+                  : photoTaken;
 
               const manipulator =
                 processType === "image"

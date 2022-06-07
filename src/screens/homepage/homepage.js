@@ -42,6 +42,7 @@ import KeepBackground from "../../assets/icons/image-plus.svg";
 import RemoveBackground from "../../assets/icons/image-block.svg";
 import TextIcon from "../../assets/icons/text.svg";
 import Image from "../../assets/icons/image.svg";
+import Gallery from "../../assets/icons/gallery.svg";
 
 import Constants from "expo-constants";
 
@@ -225,19 +226,31 @@ const HomePage = ({ navigation }) => {
 
           const image = { type: "image", base64: file.base64, uri: file.uri };
 
-          var response = await FileSystem.uploadAsync(
-            `${uri}/expoObjectEx`,
-            image.uri,
-            {
-              headers: {
-                "content-type": "image/jpeg",
-              },
-              httpMethod: "POST",
-              uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
-            }
-          );
+          // var response = await FileSystem.uploadAsync(
+          //   `${uri}/expoObjectEx`,
+          //   image.uri,
+          //   {
+          //     headers: {
+          //       "content-type": "image/jpeg",
+          //     },
+          //     httpMethod: "POST",
+          //     uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+          //   }
+          // );
 
-          const imageUrl64 = JSON.parse(response.body).imgUri64;
+          var response = await fetch(`${uri}/objectEx`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              base64: file.base64,
+            }),
+          });
+
+          const url = await response.json();
+
+          const imageUrl64 = url.imgUri64;
 
           let body = JSON.stringify({
             requests: [
@@ -406,23 +419,6 @@ const HomePage = ({ navigation }) => {
             marginRight: 5,
           }}
         >
-          {/* Camera Change button */}
-          <TouchableOpacity
-            onPress={changeCamera}
-            activeOpacity={0.8}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 50,
-              backgroundColor: "rgba(0, 0, 0, 0.3)",
-              justifyContent: "center",
-              alignItems: "center",
-              marginBottom: 10,
-            }}
-          >
-            <CameraChange height={30} width={30} />
-          </TouchableOpacity>
-
           {/* Mode Change button */}
           <TouchableOpacity
             onPress={changeProcessMode}
@@ -466,25 +462,27 @@ const HomePage = ({ navigation }) => {
           </TouchableOpacity>
 
           {/* Background state button */}
-          <TouchableOpacity
-            onPress={changeBackground}
-            activeOpacity={0.8}
-            style={{
-              width: 40,
-              height: 40,
-              borderRadius: 50,
-              backgroundColor: "rgba(0, 0, 0, 0.3)",
-              justifyContent: "center",
-              alignItems: "center",
-              marginBottom: 10,
-            }}
-          >
-            {willRemoveBackground === false ? (
-              <KeepBackground height={30} width={30} />
-            ) : (
-              <RemoveBackground height={30} width={30} />
-            )}
-          </TouchableOpacity>
+          {cameraMode && (
+            <TouchableOpacity
+              onPress={changeBackground}
+              activeOpacity={0.8}
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 50,
+                backgroundColor: "rgba(0, 0, 0, 0.3)",
+                justifyContent: "center",
+                alignItems: "center",
+                marginBottom: 10,
+              }}
+            >
+              {willRemoveBackground === false ? (
+                <KeepBackground height={30} width={30} />
+              ) : (
+                <RemoveBackground height={30} width={30} />
+              )}
+            </TouchableOpacity>
+          )}
 
           {/* Settings button */}
           <TouchableOpacity
@@ -505,6 +503,10 @@ const HomePage = ({ navigation }) => {
         </View>
         {/* Capture button View*/}
         <View style={styles.buttonContainer}>
+          <TouchableOpacity activeOpacity={0.8}>
+            <Gallery height={40} width={40} />
+          </TouchableOpacity>
+
           <TouchableOpacity
             onPress={takePicture}
             activeOpacity={0.8}
@@ -514,11 +516,12 @@ const HomePage = ({ navigation }) => {
               borderRadius: 50,
               borderWidth: 5,
               borderColor: "white",
-              justifyContent: "flex-end",
-
-              alignSelf: "center",
             }}
           />
+
+          <TouchableOpacity onPress={changeCamera} activeOpacity={0.8}>
+            <CameraChange height={40} width={40} />
+          </TouchableOpacity>
         </View>
 
         {/* Utility buttons view */}
@@ -538,9 +541,14 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flex: 1,
+    flexDirection: "row",
     backgroundColor: "transparent",
-    justifyContent: "flex-end",
-    margin: 20,
+    justifyContent: "space-between",
+    alignItems: "center",
+    position: "absolute",
+    width: "100%",
+    paddingHorizontal: 20,
+    bottom: 20,
   },
   button: {
     flex: 0.1,

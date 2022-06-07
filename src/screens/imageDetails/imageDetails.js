@@ -222,7 +222,7 @@ const ImageDetails = ({ navigation, route }) => {
             onPress={async () => {
               try {
                 const result = await Share.share({
-                  message: `This image was shared with you from CopyPaste |   ${post.imgUrl}`,
+                  message: `This image was shared with you from CopyCat |   ${post.imgUrl}`,
                 });
                 if (result.action === Share.sharedAction) {
                   if (result.activityType) {
