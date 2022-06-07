@@ -18,8 +18,6 @@ const Profile = ({ navigation }) => {
   //Recoil State
   const userProfile = useRecoilValue(userProfileState);
 
-  console.log(userProfile);
-
   return (
     <SafeAreaView
       style={{

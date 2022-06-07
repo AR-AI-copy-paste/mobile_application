@@ -20,7 +20,7 @@ import { supabase } from "../../utils/supabase";
 const ImageDetails = ({ navigation, route }) => {
   const { post, ownerUsername } = route.params;
 
-  console.log(post, ownerUsername);
+  
 
   return (
     <SafeAreaView

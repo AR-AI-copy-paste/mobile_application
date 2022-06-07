@@ -24,6 +24,8 @@ import { supabase } from "../../utils/supabase";
 const ExplorePage = ({ navigation }) => {
   //UseState
   const [posts, setPosts] = useState([]);
+  const [filteredPosts, setFilteredPosts] = useState(posts);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -35,9 +37,21 @@ const ExplorePage = ({ navigation }) => {
         return console.log(error);
       }
 
-      setPosts(data);
+      const sorted = data.sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      );
+
+      setPosts(sorted);
     })();
   }, []);
+
+  useEffect(() => {
+    if (search.length === 0) return setFilteredPosts(posts);
+    const filtered = posts.filter((post) => {
+      return post.label?.toLowerCase().includes(search.toLowerCase());
+    });
+    setFilteredPosts(filtered);
+  }, [search]);
 
   const gap = 6;
 
@@ -57,6 +71,9 @@ const ExplorePage = ({ navigation }) => {
           padding: 10,
           marginBottom: 20,
         }}
+        onChangeText={(text) => {
+          setSearch(text);
+        }}
         placeholder="Search images..."
       />
 
@@ -70,7 +87,7 @@ const ExplorePage = ({ navigation }) => {
             paddingVertical: gap / 2,
           }}
         >
-          {posts.map((post) => {
+          {filteredPosts.map((post) => {
             return (
               <ImagePost
                 key={post.id}
