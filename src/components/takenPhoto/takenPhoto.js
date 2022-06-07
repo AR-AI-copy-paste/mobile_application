@@ -40,7 +40,7 @@ import ShareIcon from "../../assets/icons/share-white.svg";
 import { uploadImage } from "../../utils/ipfs_storage";
 import { supabase } from "../../utils/supabase";
 
-const TakenPhoto = ({ setPhotoTaken, photoTaken, processType }) => {
+const TakenPhoto = ({ setPhotoTaken, photoTaken, processType, label }) => {
   // useState
   const [title, setTitle] = useState(Generate.generate().dashed);
   const [originalTitle, setOriginalTitle] = useState(title);
@@ -50,6 +50,8 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken, processType }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [compressFile, setFile] = useState(null);
   const [webSocket, setWebSocket] = useState(null);
+
+  console.log("Label: ", label);
 
   const submitImage = async () => {
     if (isLoading) return;
@@ -63,6 +65,7 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken, processType }) => {
         title,
         imgUrl: imageUrl,
         owner: supabase.auth.user().id,
+        label: label,
         isPrivate,
       });
 

@@ -70,6 +70,9 @@ const HomePage = ({ navigation }) => {
   //References
   const cameraRef = useRef(null);
 
+
+  console.log(label)
+
   //Checking is user has a profile
   useEffect(() => {
     try {
@@ -304,6 +307,7 @@ const HomePage = ({ navigation }) => {
           setLabel(
             responseJson.responses[0].webDetection.bestGuessLabels[0].label
           );
+
           setPhotoTaken(imageUrl64);
           setIsTakingPic(false);
         } else {
@@ -372,6 +376,7 @@ const HomePage = ({ navigation }) => {
         setPhotoTaken={setPhotoTaken}
         photoTaken={photoTaken}
         processType={processType}
+        label={label}
       />
     );
   }
