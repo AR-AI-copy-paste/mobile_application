@@ -42,6 +42,7 @@ const ExplorePage = ({ navigation }) => {
       );
 
       setPosts(sorted);
+      setFilteredPosts(sorted);
     })();
   }, []);
 
