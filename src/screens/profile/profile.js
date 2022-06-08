@@ -1,3 +1,6 @@
+//React import
+import { useState, useEffect } from "react";
+
 //React Native import
 import { View, TouchableOpacity, Image, ScrollView } from "react-native";
 
@@ -14,10 +17,33 @@ import BackArrow from "../../assets/icons/backarrow.svg";
 import { useRecoilValue } from "recoil";
 import { userProfileState } from "../../recoil/state";
 
+//Utils import
+import { supabase } from "../../utils/supabase";
+import ImagePost from "../../components/imagePost/imagePost";
+
 const Profile = ({ navigation }) => {
   //Recoil State
   const userProfile = useRecoilValue(userProfileState);
+  const [posts, setPosts] = useState([]);
 
+  useEffect(() => {
+    (async () => {
+      const { data, error } = await supabase
+        .from("images")
+        .select()
+        .match({ owner: userProfile.id });
+      if (error) {
+        return console.log(error);
+      }
+
+      const sorted = data.sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      );
+
+      setPosts(sorted);
+    })();
+  }, []);
+  const gap = 6;
   return (
     <SafeAreaView
       style={{
@@ -124,22 +150,31 @@ const Profile = ({ navigation }) => {
         </View>
 
         <ScrollView
-          style={{ flex: 1 }}
+          showsVerticalScrollIndicator={false}
           contentContainerStyle={{
-            flexGrow: 1,
+            padding: 20,
           }}
         >
           <View
             style={{
-              backgroundColor: "#fff",
+              flexDirection: "row",
+              flexWrap: "wrap",
               width: "100%",
-              height: "100%",
-              marginTop: 10,
-              borderTopLeftRadius: 20,
-              borderTopRightRadius: 20,
-              flex: 1,
+              paddingHorizontal: gap / -2,
+              paddingVertical: gap / 2,
             }}
-          ></View>
+          >
+            {posts.map((post) => {
+              return (
+                <ImagePost
+                  key={post.id}
+                  userId={post.owner}
+                  post={post}
+                  navigation={navigation}
+                />
+              );
+            })}
+          </View>
         </ScrollView>
       </View>
     </SafeAreaView>

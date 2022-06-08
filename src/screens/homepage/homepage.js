@@ -17,6 +17,7 @@ import TakenPhoto from "../../components/takenPhoto/takenPhoto";
 //Dependencies import
 import Toast from "react-native-toast-message";
 import { Camera } from "expo-camera";
+import * as Permissions from 'expo-permissions';
 import { useIsFocused } from "@react-navigation/native";
 import * as FileSystem from "expo-file-system";
 import * as ImageManipulator from "expo-image-manipulator";
@@ -46,6 +47,7 @@ import Gallery from "../../assets/icons/gallery.svg";
 
 import Constants from "expo-constants";
 
+
 const HomePage = ({ navigation }) => {
   const { manifest } = Constants;
 
@@ -70,8 +72,7 @@ const HomePage = ({ navigation }) => {
   //References
   const cameraRef = useRef(null);
 
-
-  console.log(label)
+ 
 
   //Checking is user has a profile
   useEffect(() => {
@@ -120,7 +121,7 @@ const HomePage = ({ navigation }) => {
   //Getting permission to use the camera
   useEffect(() => {
     (async () => {
-      const { status } = await Camera.requestCameraPermissionsAsync();
+      const { status } = await Permissions.askAsync(Permissions.CAMERA)
       setHasPermission(status === "granted");
     })();
   }, []);
