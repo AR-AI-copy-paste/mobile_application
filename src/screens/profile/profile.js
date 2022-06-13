@@ -160,7 +160,7 @@ const Profile = ({ navigation }) => {
               flexDirection: "row",
               flexWrap: "wrap",
               width: "100%",
-              paddingHorizontal: gap / -2,
+              paddingHorizontal: gap / -2, 
               paddingVertical: gap / 2,
             }}
           >

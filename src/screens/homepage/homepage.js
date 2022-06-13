@@ -17,10 +17,11 @@ import TakenPhoto from "../../components/takenPhoto/takenPhoto";
 //Dependencies import
 import Toast from "react-native-toast-message";
 import { Camera } from "expo-camera";
-import * as Permissions from 'expo-permissions';
+import * as Permissions from "expo-permissions";
 import { useIsFocused } from "@react-navigation/native";
 import * as FileSystem from "expo-file-system";
 import * as ImageManipulator from "expo-image-manipulator";
+import * as ImagePicker from "expo-image-picker";
 import TesseractOcr, {
   LANG_ENGLISH,
   useEventListener,
@@ -47,7 +48,6 @@ import Gallery from "../../assets/icons/gallery.svg";
 
 import Constants from "expo-constants";
 
-
 const HomePage = ({ navigation }) => {
   const { manifest } = Constants;
 
@@ -62,8 +62,11 @@ const HomePage = ({ navigation }) => {
   const [cameraMode, setCameraMode] = useState(true);
   const [processType, setProcessType] = useState(null);
   const [label, setLabel] = useState(null);
+  const [imageFromGallery, setImageFromGallery] = useState(null);
 
   const isFocused = useIsFocused();
+
+  const uri = `https://copycatserver.aimensahnoun.com`;
 
   //Recoil State
   const auth = useRecoilValue(authState);
@@ -71,8 +74,6 @@ const HomePage = ({ navigation }) => {
 
   //References
   const cameraRef = useRef(null);
-
- 
 
   //Checking is user has a profile
   useEffect(() => {
@@ -121,10 +122,18 @@ const HomePage = ({ navigation }) => {
   //Getting permission to use the camera
   useEffect(() => {
     (async () => {
-      const { status } = await Permissions.askAsync(Permissions.CAMERA)
+      const { status } = await Permissions.askAsync(Permissions.CAMERA);
       setHasPermission(status === "granted");
     })();
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      setIsTakingPic(true);
+      setProcessType("image");
+      await removeBackgroundFromImage(imageFromGallery);
+    })();
+  }, [imageFromGallery]);
 
   //Function for switching the cameras
   const changeCamera = () => {
@@ -149,10 +158,101 @@ const HomePage = ({ navigation }) => {
     setWillRemoveBackground(!willRemoveBackground);
   };
 
+  const getImageFromGallery = async () => {
+    let result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 0.5,
+      allowsEditing: true,
+    });
+
+    if (!result.cancelled) {
+      const file = await ImageManipulator.manipulateAsync(
+        result.uri,
+        [{ resize: { width: 720, height: 1280 } }],
+        {
+          compress: 1,
+          format: ImageManipulator.SaveFormat.JPEG,
+          base64: true,
+        }
+      );
+      setImageFromGallery(file);
+    }
+  };
+
+  //Function for removing background
+  const removeBackgroundFromImage = async (file) => {
+    try {
+      var response = await fetch(`${uri}/objectEx`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          base64: file.base64,
+        }),
+      });
+
+      const url = await response.json();
+
+      const imageUrl64 = url.imgUri64;
+
+      let body = JSON.stringify({
+        requests: [
+          {
+            features: [
+              // { type: "LABEL_DETECTION", maxResults: 10 },
+              // { type: "LANDMARK_DETECTION", maxResults: 5 },
+              // { type: "FACE_DETECTION", maxResults: 5 },
+              // { type: "LOGO_DETECTION", maxResults: 5 },
+              // { type: "TEXT_DETECTION", maxResults: 5 },
+              // { type: "DOCUMENT_TEXT_DETECTION", maxResults: 5 },
+              { type: "SAFE_SEARCH_DETECTION", maxResults: 5 },
+              // { type: "IMAGE_PROPERTIES", maxResults: 5 },
+              // { type: "CROP_HINTS", maxResults: 5 },
+              { type: "WEB_DETECTION", maxResults: 5 },
+            ],
+            image: {
+              content: imageUrl64.split("data:image/png;base64,")[1],
+            },
+          },
+        ],
+      });
+
+      let googleResponse = await fetch(
+        "https://vision.googleapis.com/v1/images:annotate?key=" + GOOGLE_CLOUD,
+        {
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          method: "POST",
+          body: body,
+        }
+      );
+      let responseJson = await googleResponse.json();
+
+      if (
+        responseJson.responses[0].safeSearchAnnotation.adult === "LIKELY" ||
+        responseJson.responses[0].safeSearchAnnotation.adult === "POSSIBLE" ||
+        responseJson.responses[0].safeSearchAnnotation.adult === "VERY_LIKELY"
+      ) {
+        setIsTakingPic(false);
+        return Toast.show({
+          type: "error",
+          text1: "Adult content not allowed",
+        });
+      }
+      setLabel(responseJson.responses[0].webDetection.bestGuessLabels[0].label);
+
+      setPhotoTaken(imageUrl64);
+      setIsTakingPic(false);
+    } catch (error) {
+      setIsTakingPic(false);
+    }
+  };
+
   const takePicture = async () => {
     try {
-      const uri = `http://copycatserver.aimensahnoun.com`;
-
       if (isTakingPic) return;
       setIsTakingPic(true);
       if (cameraRef.current) {
@@ -230,87 +330,7 @@ const HomePage = ({ navigation }) => {
 
           const image = { type: "image", base64: file.base64, uri: file.uri };
 
-          // var response = await FileSystem.uploadAsync(
-          //   `${uri}/expoObjectEx`,
-          //   image.uri,
-          //   {
-          //     headers: {
-          //       "content-type": "image/jpeg",
-          //     },
-          //     httpMethod: "POST",
-          //     uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
-          //   }
-          // );
-
-          var response = await fetch(`${uri}/objectEx`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              base64: file.base64,
-            }),
-          });
-
-          const url = await response.json();
-
-          const imageUrl64 = url.imgUri64;
-
-          let body = JSON.stringify({
-            requests: [
-              {
-                features: [
-                  // { type: "LABEL_DETECTION", maxResults: 10 },
-                  // { type: "LANDMARK_DETECTION", maxResults: 5 },
-                  // { type: "FACE_DETECTION", maxResults: 5 },
-                  // { type: "LOGO_DETECTION", maxResults: 5 },
-                  // { type: "TEXT_DETECTION", maxResults: 5 },
-                  // { type: "DOCUMENT_TEXT_DETECTION", maxResults: 5 },
-                  { type: "SAFE_SEARCH_DETECTION", maxResults: 5 },
-                  // { type: "IMAGE_PROPERTIES", maxResults: 5 },
-                  // { type: "CROP_HINTS", maxResults: 5 },
-                  { type: "WEB_DETECTION", maxResults: 5 },
-                ],
-                image: {
-                  content: imageUrl64.split("data:image/png;base64,")[1],
-                },
-              },
-            ],
-          });
-
-          let googleResponse = await fetch(
-            "https://vision.googleapis.com/v1/images:annotate?key=" +
-              GOOGLE_CLOUD,
-            {
-              headers: {
-                Accept: "application/json",
-                "Content-Type": "application/json",
-              },
-              method: "POST",
-              body: body,
-            }
-          );
-          let responseJson = await googleResponse.json();
-
-          if (
-            responseJson.responses[0].safeSearchAnnotation.adult === "LIKELY" ||
-            responseJson.responses[0].safeSearchAnnotation.adult ===
-              "POSSIBLE" ||
-            responseJson.responses[0].safeSearchAnnotation.adult ===
-              "VERY_LIKELY"
-          ) {
-            setIsTakingPic(false);
-            return Toast.show({
-              type: "error",
-              text1: "Adult content not allowed",
-            });
-          }
-          setLabel(
-            responseJson.responses[0].webDetection.bestGuessLabels[0].label
-          );
-
-          setPhotoTaken(imageUrl64);
-          setIsTakingPic(false);
+          await removeBackgroundFromImage(file);
         } else {
           let body = JSON.stringify({
             requests: [
@@ -366,11 +386,6 @@ const HomePage = ({ navigation }) => {
     setCameraMode(!cameraMode);
   };
 
-  //Displaying the loading spinner before the data is loaded
-  if (isLoading) {
-    return <LoadingSpinner />;
-  }
-
   if (photoTaken) {
     return (
       <TakenPhoto
@@ -380,6 +395,11 @@ const HomePage = ({ navigation }) => {
         label={label}
       />
     );
+  }
+
+  //Displaying the loading spinner before the data is loaded
+  if (isLoading) {
+    return <LoadingSpinner />;
   }
 
   if (hasPermission === null) {
@@ -509,7 +529,7 @@ const HomePage = ({ navigation }) => {
         </View>
         {/* Capture button View*/}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity activeOpacity={0.8}>
+          <TouchableOpacity activeOpacity={0.8} onPress={getImageFromGallery}>
             <Gallery height={40} width={40} />
           </TouchableOpacity>
 

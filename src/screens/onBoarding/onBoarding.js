@@ -61,18 +61,17 @@ const OnBoading = ({ navigation }) => {
 
       const { username, fullName } = formData;
 
-      const { data, error } = await supabase.from("profiles").insert([
-        {
-          id: supabase.auth.user().id,
-          fullName,
-          userName: username.toLowerCase(),
-          email: supabase.auth.user().email,
-          ProfileImage: profileUrl,
-          scans: 0,
-        },
-      ]);
+      const { data, error } = await supabase.from("profiles").insert({
+        id: supabase.auth.user().id,
+        fullName: fullName,
+        userName: username.toLowerCase(),
+        email: supabase.auth.user().email,
+        ProfileImage: profileUrl,
+        scans: 0,
+      });
 
       if (error) {
+        console.log(error.message);
         Toast.show({
           type: "error",
           text1: "Something went wrong",
