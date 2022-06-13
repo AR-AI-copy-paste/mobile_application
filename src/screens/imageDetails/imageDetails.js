@@ -68,7 +68,7 @@ const ImageDetails = ({ navigation, route }) => {
               }}
             >
               <Image
-                source={{ uri: post.imgUrl }}
+                source={{ uri: post.originalImage }}
                 style={{
                   height: "100%",
                   width: "100%",
@@ -79,7 +79,7 @@ const ImageDetails = ({ navigation, route }) => {
           )
         ) : (
           <Image
-            source={{ uri: post.originalImage }}
+            source={{ uri: post.imgUrl }}
             style={{
               height: "100%",
               width: "100%",
