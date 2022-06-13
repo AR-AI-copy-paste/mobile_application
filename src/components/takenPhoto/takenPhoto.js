@@ -40,7 +40,13 @@ import ShareIcon from "../../assets/icons/share-white.svg";
 import { uploadImage } from "../../utils/ipfs_storage";
 import { supabase } from "../../utils/supabase";
 
-const TakenPhoto = ({ setPhotoTaken, photoTaken, processType, label }) => {
+const TakenPhoto = ({
+  setPhotoTaken,
+  photoTaken,
+  processType,
+  label,
+  textImage,
+}) => {
   // useState
   const [title, setTitle] = useState(Generate.generate().dashed);
   const [originalTitle, setOriginalTitle] = useState(title);
@@ -57,34 +63,64 @@ const TakenPhoto = ({ setPhotoTaken, photoTaken, processType, label }) => {
     if (isLoading) return;
     setIsLoading(true);
     try {
-      const imageUrl = await uploadImage(
-        photoTaken.uri ? photoTaken.uri : compressFile.uri
-      );
+      const imageUrl =
+        processType == "image"
+          ? await uploadImage(
+              photoTaken.uri ? photoTaken.uri : compressFile.uri
+            )
+          : await uploadImage(textImage.uri);
 
-      const { _data, error } = await supabase.from("images").insert({
-        title,
-        imgUrl: imageUrl,
-        owner: supabase.auth.user().id,
-        label: label,
-        isPrivate,
-      });
-
-      if (error) {
-        Toast.show({
-          type: "error",
-          text1: "Something went wrong",
-          text2: error.message,
+      if (processType == "image") {
+        const { _data, error } = await supabase.from("images").insert({
+          title,
+          imgUrl: imageUrl,
+          owner: supabase.auth.user().id,
+          label: label,
+          isPrivate,
         });
-        return setIsLoading(false);
+
+        if (error) {
+          Toast.show({
+            type: "error",
+            text1: "Something went wrong",
+            text2: error.message,
+          });
+          return setIsLoading(false);
+        }
+
+        Toast.show({
+          type: "success",
+          text1: "Photo uploaded successfully",
+        });
+
+        setIsLoading(false);
+        setPhotoTaken(null);
+      } else {
+        const { _data, error } = await supabase.from("text").insert({
+          title,
+          originalImage: imageUrl,
+          owner: supabase.auth.user().id,
+          text :photoTaken ,
+          isPrivate,
+        });
+
+        if (error) {
+          Toast.show({
+            type: "error",
+            text1: "Something went wrong",
+            text2: error.message,
+          });
+          return setIsLoading(false);
+        }
+
+        Toast.show({
+          type: "success",
+          text1: "Text uploaded successfully",
+        });
+
+        setIsLoading(false);
+        setPhotoTaken(null);
       }
-
-      Toast.show({
-        type: "success",
-        text1: "Photo uploaded successfully",
-      });
-
-      setIsLoading(false);
-      setPhotoTaken(null);
     } catch (error) {
       Toast.show({
         type: "error",

@@ -63,6 +63,7 @@ const HomePage = ({ navigation }) => {
   const [processType, setProcessType] = useState(null);
   const [label, setLabel] = useState(null);
   const [imageFromGallery, setImageFromGallery] = useState(null);
+  const [textImage, setTextImage] = useState(null);
 
   const isFocused = useIsFocused();
 
@@ -371,6 +372,7 @@ const HomePage = ({ navigation }) => {
           let text = responseJson.responses[0].textAnnotations[0].description;
 
           setProcessType("text");
+          setTextImage(file);
           setPhotoTaken(text);
           setIsTakingPic(false);
         }
@@ -393,6 +395,7 @@ const HomePage = ({ navigation }) => {
         photoTaken={photoTaken}
         processType={processType}
         label={label}
+        textImage={textImage}
       />
     );
   }
