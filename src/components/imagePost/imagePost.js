@@ -46,17 +46,27 @@ const ImagePost = ({ userId, post, navigation }) => {
         marginBottom: gap * 2,
       }}
     >
-      <Image
-        style={{
-          height: "80%",
-          width: "100%",
-          borderRadius: 15,
-          resizeMode: "cover",
-        }}
-        source={{
-          uri: post.imgUrl,
-        }}
-      />
+      {!post.text ? (
+        <Image
+          style={{
+            height: "80%",
+            width: "100%",
+            borderRadius: 15,
+            resizeMode: "cover",
+          }}
+          source={{
+            uri: post.imgUrl,
+          }}
+        />
+      ) : (
+        <View style={{
+          padding:3,
+          height:"80%"
+        }}>
+
+        <CustomText fontSize={12}>{post.text}</CustomText>
+        </View>
+      )}
 
       <View
         style={{

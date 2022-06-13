@@ -74,6 +74,7 @@
     "react-native-screens": "~3.11.1",
     "react-native-svg": "12.3.0",
     "react-native-svg-transformer": "^1.0.0",
+    "react-native-swipe-detect": "^1.0.10",
     "react-native-tcp": "^3.2.1",
     "react-native-tesseract-ocr": "^2.0.3",
     "react-native-toast-message": "^2.1.5",

@@ -1,11 +1,15 @@
+//React
+import { useState } from "react";
+
 //React Native import
-import { Image, TouchableOpacity, View, Share } from "react-native";
+import { Image, TouchableOpacity, View, Share, ScrollView } from "react-native";
 
 //Dependencies import
 import { SafeAreaView } from "react-native-safe-area-context";
 
 //Custom Component import
 import CustomText from "../../components/CustomText/CustomText";
+import GestureRecognizer, { swipeDirections } from "react-native-swipe-detect";
 
 //Assets import
 import BackArrow from "../../assets/icons/backarrow.svg";
@@ -20,6 +24,8 @@ import { supabase } from "../../utils/supabase";
 const ImageDetails = ({ navigation, route }) => {
   const { post, ownerUsername } = route.params;
 
+  const [showingImage, setShowingImage] = useState(0);
+
   return (
     <SafeAreaView
       style={{
@@ -33,14 +39,54 @@ const ImageDetails = ({ navigation, route }) => {
           position: "relative",
         }}
       >
-        <Image
-          source={{ uri: post.imgUrl }}
-          style={{
-            height: "100%",
-            width: "100%",
-            resizeMode: "cover",
-          }}
-        />
+        {post.text ? (
+          showingImage === 0 ? (
+            <GestureRecognizer
+              onSwipeLeft={() => {
+                setShowingImage(1);
+              }}
+            >
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{
+                  paddingHorizontal: 20,
+                  paddingBottom: 120,
+                }}
+                style={{
+                  paddingTop: "20%",
+                  height: "100%",
+                  width: "100%",
+                }}
+              >
+                <CustomText>{post.text}</CustomText>
+              </ScrollView>
+            </GestureRecognizer>
+          ) : (
+            <GestureRecognizer
+              onSwipeRight={() => {
+                setShowingImage(0);
+              }}
+            >
+              <Image
+                source={{ uri: post.imgUrl }}
+                style={{
+                  height: "100%",
+                  width: "100%",
+                  resizeMode: "cover",
+                }}
+              />
+            </GestureRecognizer>
+          )
+        ) : (
+          <Image
+            source={{ uri: post.originalImage }}
+            style={{
+              height: "100%",
+              width: "100%",
+              resizeMode: "cover",
+            }}
+          />
+        )}
         <View
           style={{
             position: "absolute",

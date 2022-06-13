@@ -27,6 +27,8 @@ import { Toast } from "react-native-toast-message/lib/src/Toast";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as Clipboard from "expo-clipboard";
 
+
+
 //Assets import
 import BackArrow from "../../assets/icons/backarrow.svg";
 import Download from "../../assets/icons/download_white.svg";
@@ -371,7 +373,7 @@ const OptionBar = ({
       <View
         style={{
           width: 50,
-          height: 170,
+          height: processType == "image" ? 170 : 220,
           borderRadius: 100,
           backgroundColor: "rgba(0,0,0,0.4)",
           paddingVertical: 20,
@@ -384,6 +386,7 @@ const OptionBar = ({
             <TouchableOpacity
               style={{ marginBottom: 20 }}
               activeOpacity={0.8}
+              o
               onPress={async () => {
                 try {
                   await MediaLibrary.saveToLibraryAsync(
@@ -422,6 +425,20 @@ const OptionBar = ({
           </>
         ) : (
           <>
+            {/* Private/Public button */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={{ marginBottom: 20 }}
+              onPress={async () => {
+                setIsPrivate(!isPrivate);
+              }}
+            >
+              {isPrivate ? (
+                <Locked height={30} width={30} />
+              ) : (
+                <Unlocked height={30} width={30} />
+              )}
+            </TouchableOpacity>
             {/* // Copy to clipboard button */}
             <TouchableOpacity
               style={{ marginBottom: 20 }}

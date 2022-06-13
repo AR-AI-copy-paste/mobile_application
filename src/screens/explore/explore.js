@@ -28,22 +28,36 @@ const ExplorePage = ({ navigation }) => {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    (async () => {
-      const { data, error } = await supabase
-        .from("images")
-        .select()
-        .match({ isPrivate: false });
-      if (error) {
-        return console.log(error);
-      }
+    try {
+      (async () => {
+        const { data, error } = await supabase
+          .from("images")
+          .select()
+          .match({ isPrivate: false });
+        if (error) {
+          return console.log(error);
+        }
 
-      const sorted = data.sort(
-        (a, b) => new Date(b.created_at) - new Date(a.created_at)
-      );
+        const textResult = await supabase
+          .from("text")
+          .select()
+          .match({ isPrivate: false });
 
-      setPosts(sorted);
-      setFilteredPosts(sorted);
-    })();
+        const posts = [...data, ...textResult.data];
+        if (error) {
+          return console.log(error);
+        }
+
+        const sorted = posts.sort(
+          (a, b) => new Date(b.created_at) - new Date(a.created_at)
+        );
+
+        setPosts(sorted);
+        setFilteredPosts(sorted);
+      })();
+    } catch (error) {
+      console.log(error);
+    }
   }, []);
 
   useEffect(() => {
