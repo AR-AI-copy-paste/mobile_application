@@ -9,10 +9,11 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import * as Clipboard from "expo-clipboard";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
 import GestureRecognizer, { swipeDirections } from "react-native-swipe-detect";
+import * as MediaLibrary from "expo-media-library";
+import * as FileSystem from "expo-file-system";
 
 //Custom Component import
 import CustomText from "../../components/CustomText/CustomText";
-
 
 //Assets import
 import BackArrow from "../../assets/icons/backarrow.svg";
@@ -265,6 +266,20 @@ const ImageDetails = ({ navigation, route }) => {
                   });
                 }
               } else {
+                try {
+                  const { uri } = await FileSystem.downloadAsync(
+                    post.imgUrl,
+                    FileSystem.documentDirectory + `CopyCat-${post.id}.png`
+                  );
+
+                  await MediaLibrary.saveToLibraryAsync(uri);
+                  Toast.show({
+                    type: "success",
+                    text1: "Photo saved to gallery successfully",
+                  });
+                } catch (e) {
+                  console.log(e);
+                }
               }
             }}
             activeOpacity={0.8}
