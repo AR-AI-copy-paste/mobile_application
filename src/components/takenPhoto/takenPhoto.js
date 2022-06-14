@@ -26,8 +26,7 @@ import * as MediaLibrary from "expo-media-library";
 import { Toast } from "react-native-toast-message/lib/src/Toast";
 import * as ImageManipulator from "expo-image-manipulator";
 import * as Clipboard from "expo-clipboard";
-
-
+import { io } from "socket.io-client";
 
 //Assets import
 import BackArrow from "../../assets/icons/backarrow.svg";
@@ -58,6 +57,7 @@ const TakenPhoto = ({
   const [isLoading, setIsLoading] = useState(false);
   const [compressFile, setFile] = useState(null);
   const [webSocket, setWebSocket] = useState(null);
+  const [isSending, setIsSending] = useState(false);
 
   console.log("Label: ", label);
 
@@ -102,7 +102,7 @@ const TakenPhoto = ({
           title,
           originalImage: imageUrl,
           owner: supabase.auth.user().id,
-          text :photoTaken ,
+          text: photoTaken,
           isPrivate,
         });
 
@@ -131,22 +131,6 @@ const TakenPhoto = ({
       });
     }
   };
-
-  // useEffect
-  useEffect(() => {
-    let ws = new WebSocket("ws://192.168.1.101:8084");
-    ws.onopen = () => {
-      Toast.show({
-        type: "success",
-        position: "bottom",
-        text1: "Connected to desktop app",
-      });
-
-      ws.send("Mobile app conencted");
-
-      setWebSocket(ws);
-    };
-  }, []);
 
   //useEffect
   useEffect(() => {
@@ -294,6 +278,8 @@ const TakenPhoto = ({
               compressFile={compressFile}
               webSocket={webSocket}
               processType={processType}
+              isSending={isSending}
+              setIsSending={setIsSending}
             />
           </InteractionProvider>
         </View>
@@ -334,6 +320,8 @@ const TakenPhoto = ({
                 compressFile={compressFile}
                 webSocket={webSocket}
                 processType={processType}
+                isSending={isSending}
+                setIsSending={setIsSending}
               />
             </InteractionProvider>
           </ScrollView>
@@ -351,6 +339,8 @@ const OptionBar = ({
   compressFile,
   webSocket,
   processType,
+  isSending,
+  setIsSending,
   ...rest
 }) => {
   return (
@@ -498,6 +488,8 @@ const OptionBar = ({
           activeOpacity={0.8}
           onPress={async () => {
             try {
+              if (isSending) return;
+              setIsSending(true);
               const message =
                 processType === "image"
                   ? photoTaken.uri
@@ -524,7 +516,21 @@ const OptionBar = ({
                   processType === "image" ? manipulator.base64 : photoTaken,
               };
 
-              webSocket.send(JSON.stringify(messageObject));
+              const socket = io("https://capstoneserver-2.herokuapp.com");
+
+              socket.on("connect", () => {
+                console.log("connected");
+                Toast.show({
+                  type: "success",
+                  position: "bottom",
+                  text1: "Connected to desktop app successfully",
+                });
+                socket.emit("message", JSON.stringify(messageObject));
+                setTimeout(() => {
+                  socket.disconnect();
+                }, 2000);
+                setIsSending(false);
+              });
             } catch (e) {
               console.log(e);
             }

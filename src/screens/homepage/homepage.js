@@ -297,6 +297,9 @@ const HomePage = ({ navigation }) => {
       if (cameraRef.current) {
         const options = { quality: 1, base64: true };
         const data = await cameraRef.current.takePictureAsync(options);
+        if (flash === Camera.Constants.FlashMode.torch) {
+          changeFlash();
+        }
         const file = await ImageManipulator.manipulateAsync(
           data.uri,
           [{ resize: { width: 720, height: 1280 } }],
