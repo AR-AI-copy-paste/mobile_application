@@ -8,6 +8,7 @@ import {
   View,
   TouchableOpacity,
   ActivityIndicator,
+  Dimensions,
 } from "react-native";
 
 //Custom components import
@@ -64,6 +65,8 @@ const HomePage = ({ navigation }) => {
   const [label, setLabel] = useState(null);
   const [imageFromGallery, setImageFromGallery] = useState(null);
   const [textImage, setTextImage] = useState(null);
+  const [cameraRatio, setCameraRatio] = useState(null);
+  const [isCameraReady, setIsCameraReady] = useState(false);
 
   const isFocused = useIsFocused();
 
@@ -135,6 +138,41 @@ const HomePage = ({ navigation }) => {
       await removeBackgroundFromImage(imageFromGallery);
     })();
   }, [imageFromGallery]);
+
+  const prepareRatio = async () => {
+    const array = await cameraRef.current.getSupportedRatiosAsync();
+    const { height, width } = Dimensions.get("window");
+    const screenRatio = height / width;
+    let distances = {};
+    let realRatios = {};
+    let minDistance = null;
+    for (const ratio of array) {
+      const parts = ratio.split(":");
+      const realRatio = parseInt(parts[0]) / parseInt(parts[1]);
+      realRatios[ratio] = realRatio;
+      // ratio can't be taller than screen, so we don't want an abs()
+      const distance = screenRatio - realRatio;
+      distances[ratio] = realRatio;
+      if (minDistance == null) {
+        minDistance = ratio;
+      } else {
+        if (distance >= 0 && distance < distances[minDistance]) {
+          minDistance = ratio;
+        }
+      }
+    }
+    // set the best match
+    let desiredRatio = minDistance;
+    //  calculate the difference between the camera width and the screen height
+    const remainder = Math.floor(
+      (height - realRatios[desiredRatio] * width) / 2
+    );
+    setCameraRatio(desiredRatio);
+  };
+
+  const setCameraReady = async () => {
+    await prepareRatio();
+  };
 
   //Function for switching the cameras
   const changeCamera = () => {
@@ -434,9 +472,10 @@ const HomePage = ({ navigation }) => {
       </View>
       {/* Cameras */}
       <Camera
+        onCameraReady={setCameraReady}
         style={styles.camera}
         type={type}
-        ratio="16:9"
+        ratio={cameraRatio}
         ref={cameraRef}
         flashMode={flash}
       >
