@@ -6,10 +6,13 @@ import { Image, TouchableOpacity, View, Share, ScrollView } from "react-native";
 
 //Dependencies import
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as Clipboard from "expo-clipboard";
+import { Toast } from "react-native-toast-message/lib/src/Toast";
+import GestureRecognizer, { swipeDirections } from "react-native-swipe-detect";
 
 //Custom Component import
 import CustomText from "../../components/CustomText/CustomText";
-import GestureRecognizer, { swipeDirections } from "react-native-swipe-detect";
+
 
 //Assets import
 import BackArrow from "../../assets/icons/backarrow.svg";
@@ -246,6 +249,24 @@ const ImageDetails = ({ navigation, route }) => {
 
           {/* Download Button */}
           <TouchableOpacity
+            onPress={async () => {
+              if (post.text) {
+                try {
+                  await Clipboard.setStringAsync(post.text);
+                  Toast.show({
+                    type: "success",
+                    text1: "Text Copied to clipboard",
+                  });
+                } catch (error) {
+                  Toast.show({
+                    type: "error",
+                    text1: "Something went wrong",
+                    text2: error.message,
+                  });
+                }
+              } else {
+              }
+            }}
             activeOpacity={0.8}
             style={{
               width: "40%",
@@ -257,7 +278,7 @@ const ImageDetails = ({ navigation, route }) => {
             }}
           >
             <CustomText color="#fff" fontWeight="bold">
-              Download
+              {post.text ? "Copy" : "Download"}
             </CustomText>
           </TouchableOpacity>
 
@@ -266,7 +287,11 @@ const ImageDetails = ({ navigation, route }) => {
             onPress={async () => {
               try {
                 const result = await Share.share({
-                  message: `This image was shared with you from CopyCat |   ${post.imgUrl}`,
+                  message: `This ${
+                    post.text ? "text" : "image"
+                  } was shared with you from CopyCat |   ${
+                    post.text ? post.text : post.imgUrl
+                  }`,
                 });
                 if (result.action === Share.sharedAction) {
                   if (result.activityType) {
