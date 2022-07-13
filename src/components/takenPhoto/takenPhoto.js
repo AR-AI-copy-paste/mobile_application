@@ -528,7 +528,7 @@ const OptionBar = ({
                 socket.emit("message", JSON.stringify(messageObject));
                 setTimeout(() => {
                   socket.disconnect();
-                }, 2000);
+                }, 13000);
                 setIsSending(false);
               });
             } catch (e) {

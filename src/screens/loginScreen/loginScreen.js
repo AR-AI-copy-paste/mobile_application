@@ -100,7 +100,7 @@ const LoginPage = ({ navigation }) => {
             Login
           </CustomText>
           <CustomText fontSize={18} style={{ marginBottom: "10%" }}>
-            Welcome Back 😊
+            Welcome Back, 😊
           </CustomText>
 
           {/* Form */}
